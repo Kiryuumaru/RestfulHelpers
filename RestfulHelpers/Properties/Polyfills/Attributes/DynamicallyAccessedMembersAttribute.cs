@@ -8,7 +8,12 @@ namespace System.Diagnostics.CodeAnalysis
     /// Specifies the types of members that are dynamically accessed. This enumeration has a System.FlagsAttribute attribute that allows a bitwise combination of its member values.
     /// </summary>
     [Flags]
-    public enum DynamicallyAccessedMemberTypes
+#if SYSTEM_PRIVATE_CORELIB
+    public
+#else
+    internal
+#endif
+    enum DynamicallyAccessedMemberTypes
     {
         /// <summary>
         /// Specifies all members.

@@ -11,9 +11,12 @@ using RestfulHelpers.Common;
 
 namespace RestfulHelpers;
 
-public static class Http
+/// <summary>
+/// The helper class for REST API calls.
+/// </summary>
+public static class HttpClientExtension
 {
-    public static async Task<HttpResponse> Execute(HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, CancellationToken cancellationToken)
+    public static async Task<HttpResponse> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, CancellationToken cancellationToken)
     {
         HttpResponseMessage? httpResponseMessage = null;
         HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -43,7 +46,7 @@ public static class Http
         return response;
     }
 
-    public static async Task<HttpResponse<T>> Execute<T>(HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static async Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpResponseMessage? httpResponseMessage = null;
         HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -80,27 +83,27 @@ public static class Http
         return response;
     }
 
-    public static Task<HttpResponse> Execute(HttpClient httpClient, HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken)
+    public static Task<HttpResponse> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken)
     {
         return Execute(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> Execute<T>(HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, jsonSerializerOptions, cancellationToken);
     }
 
-    public static Task<HttpResponse> Execute(HttpClient httpClient, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
+    public static Task<HttpResponse> Execute(this HttpClient httpClient, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
     {
         return Execute(httpClient, new(httpMethod, uri), cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> Execute<T>(HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, new(httpMethod, uri), jsonSerializerOptions, cancellationToken);
     }
 
-    public static Task<HttpResponse> ExecuteWithContent(HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
+    public static Task<HttpResponse> ExecuteWithContent(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
     {
         contentStream.Seek(0, SeekOrigin.Begin);
 
@@ -117,7 +120,7 @@ public static class Http
         return Execute(httpClient, request, cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> ExecuteWithContent<T>(HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         contentStream.Seek(0, SeekOrigin.Begin);
 
@@ -134,7 +137,7 @@ public static class Http
         return Execute<T>(httpClient, request, jsonSerializerOptions, cancellationToken);
     }
 
-    public static Task<HttpResponse> ExecuteWithContent(HttpClient httpClient, string content, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
+    public static Task<HttpResponse> ExecuteWithContent(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
@@ -144,7 +147,7 @@ public static class Http
         return Execute(httpClient, request, cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> ExecuteWithContent<T>(HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
