@@ -84,7 +84,7 @@ public class HttpResponse : Response, IHttpResponse
     /// <param name="response">The <see cref="HttpResponseMessage"/> of <see cref="HttpTransaction.ResponseMessage"/> to initially append.</param>
     /// <param name="httpStatusCode">The <see cref="HttpStatusCode"/> of <see cref="HttpTransaction.StatusCode"/> to initially append.</param>
     /// <param name="error">The <see cref="Exception"/> to initially append.</param>
-    public HttpResponse(HttpRequestMessage request, HttpResponseMessage response, HttpStatusCode httpStatusCode, Exception? error)
+    public HttpResponse(HttpRequestMessage request, HttpResponseMessage? response, HttpStatusCode httpStatusCode, Exception? error)
         : this(error)
     {
         httpTransactions.Add(new(request, response, httpStatusCode));
@@ -218,7 +218,7 @@ public class HttpResponse<TResult> : Response<TResult>, IHttpResponse
     /// <param name="response">The <see cref="HttpResponseMessage"/> of <see cref="HttpTransaction.ResponseMessage"/> to initially append.</param>
     /// <param name="httpStatusCode">The <see cref="HttpStatusCode"/> of <see cref="HttpTransaction.StatusCode"/> to initially append.</param>
     /// <param name="error">The <see cref="Exception"/> to initially append.</param>
-    public HttpResponse(TResult? result, HttpRequestMessage request, HttpResponseMessage response, HttpStatusCode httpStatusCode, Exception? error)
+    public HttpResponse(TResult? result, HttpRequestMessage request, HttpResponseMessage? response, HttpStatusCode httpStatusCode, Exception? error)
         : this(result, error)
     {
         httpTransactions.Add(new(request, response, httpStatusCode));
