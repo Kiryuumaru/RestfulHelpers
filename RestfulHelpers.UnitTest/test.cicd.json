@@ -1,0 +1,8 @@
+[
+  {
+    "id": "restfulhelpers_nuget_test",
+    "name": "RestfulHelpers Test",
+    "project_dir": "RestfulHelpers.UnitTest",
+    "builds_on": "ubuntu-22.04"
+  }
+]

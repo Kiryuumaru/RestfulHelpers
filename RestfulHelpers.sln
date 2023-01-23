@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\workflows\ci-cd.yml = .github\workflows\ci-cd.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestfulHelpers.UnitTest", "RestfulHelpers.UnitTest\RestfulHelpers.UnitTest.csproj", "{F39E40F3-C04F-4521-93E4-1CCC8355C505}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{BB2B2BD7-B62E-4EB6-B003-9CD668560DAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB2B2BD7-B62E-4EB6-B003-9CD668560DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB2B2BD7-B62E-4EB6-B003-9CD668560DAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F39E40F3-C04F-4521-93E4-1CCC8355C505}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F39E40F3-C04F-4521-93E4-1CCC8355C505}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F39E40F3-C04F-4521-93E4-1CCC8355C505}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F39E40F3-C04F-4521-93E4-1CCC8355C505}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

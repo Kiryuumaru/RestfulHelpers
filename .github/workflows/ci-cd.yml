@@ -33,7 +33,6 @@ jobs:
           TEST='[]'
           while read -r json_file; do
             while read -r item; do
-              echo "$item"
               PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
             done <<< $(jq -c '.[]' "$json_file")
           done <<< $(find . -name "presentation.cicd.json")
