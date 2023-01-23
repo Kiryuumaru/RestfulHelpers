@@ -31,17 +31,17 @@ jobs:
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           PRESENTATION='[]'
           TEST='[]'
-          for json_file in $(find . -name "presentation.cicd.json"); do
-            for item in $(jq -c '.[]' "$json_file"); do
+          while read -r json_file; do
+            while read -r item; do
               echo "$item"
               PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
-            done
-          done
-          for json_file in $(find . -name "test.cicd.json"); do
-            for item in $(jq -c '.[]' "$json_file"); do
+            done <<< $(jq -c '.[]' "$json_file")
+          done <<< $(find . -name "presentation.cicd.json")
+          while read -r json_file; do
+            while read -r item; do
               TEST=$(jq --argjson item "$item" '. += [$item]' <<< "${TEST}")
-            done
-          done
+            done <<< $(jq -c '.[]' "$json_file")
+          done <<< $(find . -name "test.cicd.json")
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████ Polyfill presentation values █████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
