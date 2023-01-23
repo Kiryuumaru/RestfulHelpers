@@ -26,7 +26,7 @@ internal static class HttpResponseCommon
                 string? url = response.HttpTransactions[index].RequestUrl;
                 string? requestContent = await response.HttpTransactions[index].GetRequestContentAsString();
                 string? responseContent = await response.HttpTransactions[index].GetResponseContentAsString();
-                HttpStatusCode? statusCode = response.HttpTransactions[index].StatusCode;
+                HttpStatusCode statusCode = response.HttpTransactions[index].StatusCode;
                 transactions[index] = new StringHttpTransaction(url, requestContent, responseContent, statusCode);
             }));
         }

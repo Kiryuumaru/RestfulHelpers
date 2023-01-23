@@ -26,9 +26,9 @@ public class StringHttpTransaction
     /// <summary>
     /// Gets the <see cref="HttpStatusCode"/> of the request.
     /// </summary>
-    public HttpStatusCode? StatusCode { get; }
+    public HttpStatusCode StatusCode { get; }
 
-    internal StringHttpTransaction(string? url, string? request, string? response, HttpStatusCode? httpStatusCode)
+    internal StringHttpTransaction(string? url, string? request, string? response, HttpStatusCode httpStatusCode)
     {
         RequestUrl = url;
         RequestMessage = request;

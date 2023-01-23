@@ -17,7 +17,7 @@ public class HttpTransaction
     /// <summary>
     /// Gets the <see cref="HttpRequestMessage"/> of the request.
     /// </summary>
-    public HttpRequestMessage? RequestMessage { get; }
+    public HttpRequestMessage RequestMessage { get; }
 
     /// <summary>
     /// Gets the <see cref="HttpResponseMessage"/> of the request.
@@ -27,11 +27,11 @@ public class HttpTransaction
     /// <summary>
     /// Gets the <see cref="HttpStatusCode"/> of the request.
     /// </summary>
-    public HttpStatusCode? StatusCode { get; }
+    public HttpStatusCode StatusCode { get; }
 
-    internal HttpTransaction(HttpRequestMessage? request, HttpResponseMessage? response, HttpStatusCode? httpStatusCode)
+    internal HttpTransaction(HttpRequestMessage request, HttpResponseMessage? response, HttpStatusCode httpStatusCode)
     {
-        RequestUrl = request?.RequestUri?.ToString();
+        RequestUrl = request.RequestUri?.ToString();
         RequestMessage = request;
         ResponseMessage = response;
         StatusCode = httpStatusCode;

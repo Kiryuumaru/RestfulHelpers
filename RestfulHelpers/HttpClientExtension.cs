@@ -11,9 +11,6 @@ using RestfulHelpers.Common;
 
 namespace RestfulHelpers;
 
-/// <summary>
-/// The helper class for REST API calls.
-/// </summary>
 public static class HttpClientExtension
 {
     public static async Task<HttpResponse> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, CancellationToken cancellationToken)
@@ -46,6 +43,9 @@ public static class HttpClientExtension
         return response;
     }
 
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("Calls JsonSerializer.Deserialize<TValue>(string json, JsonSerializerOptions? options)")]
+#endif
     public static async Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpResponseMessage? httpResponseMessage = null;
@@ -88,6 +88,9 @@ public static class HttpClientExtension
         return Execute(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
     }
 
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("Calls Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)")]
+#endif
     public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, jsonSerializerOptions, cancellationToken);
@@ -98,6 +101,9 @@ public static class HttpClientExtension
         return Execute(httpClient, new(httpMethod, uri), cancellationToken);
     }
 
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("Calls Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)")]
+#endif
     public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, new(httpMethod, uri), jsonSerializerOptions, cancellationToken);
@@ -120,6 +126,9 @@ public static class HttpClientExtension
         return Execute(httpClient, request, cancellationToken);
     }
 
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("Calls Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)")]
+#endif
     public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         contentStream.Seek(0, SeekOrigin.Begin);
@@ -147,6 +156,9 @@ public static class HttpClientExtension
         return Execute(httpClient, request, cancellationToken);
     }
 
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("Calls Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)")]
+#endif
     public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpRequestMessage request = new(httpMethod, uri)
