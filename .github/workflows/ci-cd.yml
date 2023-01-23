@@ -31,14 +31,14 @@ jobs:
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           PRESENTATION='[]'
           TEST='[]'
+          shopt -s globstar
           shopt -s nullglob
-          for json_file in $(find . -name "presentation.cicd.json"); do
+          for json_file in **/presentation.cicd.json; do
             for item in $(jq -c '.[]' "$json_file"); do
               PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
             done
           done
-          shopt -s nullglob
-          for json_file in $(find . -name "test.cicd.json"); do
+          for json_file in **/test.cicd.json; do
             for item in $(jq -c '.[]' "$json_file"); do
               TEST=$(jq --argjson item "$item" '. += [$item]' <<< "${TEST}")
             done
