@@ -19,6 +19,8 @@
     <PackageTags>REST API</PackageTags>
     <PackageProjectUrl>https://github.com/Kiryuumaru/RestfulHelpers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Kiryuumaru/RestfulHelpers</RepositoryUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup>

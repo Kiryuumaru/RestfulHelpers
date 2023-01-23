@@ -272,8 +272,8 @@ jobs:
           echo "# ████████████████████████ Others █████████████████████████"
           echo "# █████████████████████████████████████████████████████████"
           echo "\"build\": ${build}"
-          echo "\"last_build\": ${last_build}"
           echo "\"is_first_build\": ${is_first_build}"
+          echo "\"last_build\": ${last_build}"
           echo "\"has_release\": ${has_release}"
           echo "# █████████████████████████████████████████████████████████"
           # ███████████████████████████████████████████████████████████████████████████████████████████████
@@ -285,9 +285,9 @@ jobs:
           echo "test=${TEST//[$'\t\r\n']}" >> $GITHUB_OUTPUT
           echo "test_matrix={\"include\":${TEST//[$'\t\r\n']}}" >> $GITHUB_OUTPUT
           echo "build=${build}" >> $GITHUB_OUTPUT
+          echo "is_first_build=${is_first_build}" >> $GITHUB_OUTPUT
           echo "last_build=${last_build}" >> $GITHUB_OUTPUT
           echo "has_release=${has_release}" >> $GITHUB_OUTPUT
-          echo "is_first_build=${is_first_build}" >> $GITHUB_OUTPUT
     outputs:
       presentation: ${{ steps.setup_matrix.outputs.presentation }}
       presentation_matrix: ${{ steps.setup_matrix.outputs.presentation_matrix }}
@@ -295,9 +295,9 @@ jobs:
       test: ${{ steps.setup_matrix.outputs.test }}
       test_matrix: ${{ steps.setup_matrix.outputs.test_matrix }}
       build: ${{ steps.setup_matrix.outputs.build }}
+      is_first_build: ${{ steps.setup_matrix.outputs.is_first_build }}
       last_build: ${{ steps.setup_matrix.outputs.last_build }}
       has_release: ${{ steps.setup_matrix.outputs.has_release }}
-      is_first_build: ${{ steps.setup_matrix.outputs.is_first_build }}
 
   test:
     needs: [setup]
