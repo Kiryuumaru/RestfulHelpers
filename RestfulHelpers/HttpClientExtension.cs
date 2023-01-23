@@ -11,6 +11,9 @@ using RestfulHelpers.Common;
 
 namespace RestfulHelpers;
 
+/// <summary>
+/// Helper extension for <see cref="HttpClient"/> REST API calls.
+/// </summary>
 public static class HttpClientExtension
 {
     public static async Task<HttpResponse> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, CancellationToken cancellationToken)
