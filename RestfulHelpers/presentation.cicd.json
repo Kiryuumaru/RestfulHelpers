@@ -1,16 +1,14 @@
 [
   {
-    "id": "restfulfirebase_nuget",
-    "name": "RestfulFirebase NuGet",
-    "project_dir": "RestfulFirebase",
+    "id": "restfulhelpers_nuget",
+    "name": "RestfulHelpers NuGet",
+    "project_dir": "RestfulHelpers",
     "version_file": "version.txt",
     "platform_version_format": "version",
     "release_tagging": "no_id",
     "builds_on": "ubuntu-22.04",
     "type": "nuget",
     "nuget_github_source_url": "https://nuget.pkg.github.com/kiryuumaru/index.json",
-    "nuget_auth_token": "NUGET_AUTH_TOKEN",
-    "nuget_firebase_project_id": "FIREBASE_PROJECT_ID",
-    "nuget_firebase_api_key": "FIREBASE_APIKEY"
+    "nuget_auth_token": "NUGET_AUTH_TOKEN"
   }
 ]
