@@ -79,13 +79,13 @@ jobs:
             fi
             # ██████████████████ Get latest version from tags ██████████████████
             latest_version="0.0.0"
-            release_tag="*"
+            release_tag="v*"
             case "${release_tagging}" in
               with_id)
                 release_tag="${id}/*"
                 ;;
               no_id)
-                release_tag="*"
+                release_tag="v*"
                 ;;
             esac
             for tag in $(git tag -l --sort=-v:refname "${release_tag}"); do
