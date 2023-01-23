@@ -91,8 +91,10 @@ jobs:
             for tag in $(git tag -l --sort=-v:refname "${release_tag}"); do
               tag_split=(${tag//// })
               tag_version=${tag_split[1]}
+              echo "on ${tag_version}"
               if [ $(semver validate "${tag_version}") == 'valid' ]; then
                 latest_version=${tag_version}
+                echo "val ${tag_version}"
                 break
               fi
             done
