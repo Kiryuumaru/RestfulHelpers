@@ -38,11 +38,6 @@ jobs:
               PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
             done
           done
-          for json_file in **/test.cicd.json; do
-            for item in $(jq -c '.[]' "$json_file"); do
-              TEST=$(jq --argjson item "$item" '. += [$item]' <<< "${TEST}")
-            done
-          done
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████ Polyfill presentation values █████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
