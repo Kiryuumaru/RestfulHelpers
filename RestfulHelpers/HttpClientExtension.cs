@@ -46,8 +46,8 @@ public static class HttpClientExtension
         return response;
     }
 
-    [RequiresUnreferencedCode(Common.Internals.Message.RequiresUnreferencedCodeMessage)]
-    public static async Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
+    public static async Task<HttpResponse<T>> Execute<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpResponseMessage? httpResponseMessage = null;
         HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -89,8 +89,7 @@ public static class HttpClientExtension
         return Execute(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
     }
 
-    [RequiresUnreferencedCode(Common.Internals.Message.RequiresUnreferencedCodeMessage)]
-    public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> Execute<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, jsonSerializerOptions, cancellationToken);
     }
@@ -100,8 +99,7 @@ public static class HttpClientExtension
         return Execute(httpClient, new(httpMethod, uri), cancellationToken);
     }
 
-    [RequiresUnreferencedCode(Common.Internals.Message.RequiresUnreferencedCodeMessage)]
-    public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> Execute<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, new(httpMethod, uri), jsonSerializerOptions, cancellationToken);
     }
@@ -123,8 +121,7 @@ public static class HttpClientExtension
         return Execute(httpClient, request, cancellationToken);
     }
 
-    [RequiresUnreferencedCode(Common.Internals.Message.RequiresUnreferencedCodeMessage)]
-    public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> ExecuteWithContent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         contentStream.Seek(0, SeekOrigin.Begin);
 
@@ -151,8 +148,7 @@ public static class HttpClientExtension
         return Execute(httpClient, request, cancellationToken);
     }
 
-    [RequiresUnreferencedCode(Common.Internals.Message.RequiresUnreferencedCodeMessage)]
-    public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    public static Task<HttpResponse<T>> ExecuteWithContent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
