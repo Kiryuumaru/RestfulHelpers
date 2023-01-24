@@ -9,6 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using RestfulHelpers.Common;
 
+using static RestfulHelpers.Common.Internals.Message;
+
 namespace RestfulHelpers;
 
 /// <summary>
@@ -16,6 +18,14 @@ namespace RestfulHelpers;
 /// </summary>
 public static class HttpClientExtension
 {
+    /// <summary>
+    /// Executes an HTTP request and returns the response as an <see cref="HttpResponse"/> object.
+    /// </summary>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="httpRequestMessage">The <see cref="HttpRequestMessage"/> representing the request.</param>
+    /// <param name="httpCompletionOption">An <see cref="HttpCompletionOption"/> value that indicates when the operation should complete.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse"/> object representing the response to the request.</returns>
     public static async Task<HttpResponse> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, CancellationToken cancellationToken)
     {
         HttpResponseMessage? httpResponseMessage = null;
@@ -46,8 +56,18 @@ public static class HttpClientExtension
         return response;
     }
 
-    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
-    public static async Task<HttpResponse<T>> Execute<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Executes an HTTP request and returns the response as a deserialized object of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of object to deserialize the response into.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="httpRequestMessage">The <see cref="HttpRequestMessage"/> representing the request.</param>
+    /// <param name="httpCompletionOption">An <see cref="HttpCompletionOption"/> value that indicates when the operation should complete.</param>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public static async Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpResponseMessage? httpResponseMessage = null;
         HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -84,26 +104,71 @@ public static class HttpClientExtension
         return response;
     }
 
+    /// <summary>
+    /// Executes an HTTP request and returns the response as an <see cref="HttpResponse"/> object using default <see cref="HttpCompletionOption"/>.
+    /// </summary>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="httpRequestMessage">The <see cref="HttpRequestMessage"/> representing the request.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse"/> object representing the response to the request.</returns>
     public static Task<HttpResponse> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken)
     {
         return Execute(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> Execute<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Executes an HTTP request and returns the response as a deserialized object of the specified type using default <see cref="HttpCompletionOption"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of object to deserialize the response into.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="httpRequestMessage">The <see cref="HttpRequestMessage"/> representing the request.</param>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, httpRequestMessage, HttpCompletionOption.ResponseContentRead, jsonSerializerOptions, cancellationToken);
     }
 
+    /// <summary>
+    /// Executes an HTTP request and returns the response as an <see cref="HttpResponse"/> object using the specified <see cref="HttpMethod"/> and URI.
+    /// </summary>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse"/> object representing the response to the request.</returns>
     public static Task<HttpResponse> Execute(this HttpClient httpClient, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
     {
         return Execute(httpClient, new(httpMethod, uri), cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> Execute<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Executes an HTTP request and returns the response as a deserialized object of the specified type using the specified <see cref="HttpMethod"/> and URI.
+    /// </summary>
+    /// <typeparam name="T">The type of object to deserialize the response into.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         return Execute<T>(httpClient, new(httpMethod, uri), jsonSerializerOptions, cancellationToken);
     }
 
+    /// <summary>
+    /// Executes an HTTP request with a provided <see cref="Stream"/> as the content and returns the response as an <see cref="HttpResponse"/> object.
+    /// </summary>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="contentStream">The <see cref="Stream"/> representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse"/> object representing the response to the request.</returns>
     public static Task<HttpResponse> ExecuteWithContent(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
     {
         contentStream.Seek(0, SeekOrigin.Begin);
@@ -121,7 +186,19 @@ public static class HttpClientExtension
         return Execute(httpClient, request, cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> ExecuteWithContent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Executes an HTTP request with a provided <see cref="Stream"/> as the content and returns the response as a deserialized object of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of object to deserialize the response into.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="contentStream">The <see cref="Stream"/> representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         contentStream.Seek(0, SeekOrigin.Begin);
 
@@ -138,6 +215,15 @@ public static class HttpClientExtension
         return Execute<T>(httpClient, request, jsonSerializerOptions, cancellationToken);
     }
 
+    /// <summary>
+    /// Executes an HTTP request with a provided string as the content and returns the response as an <see cref="HttpResponse"/> object.
+    /// </summary>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="content">The string representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse"/> object representing the response to the request.</returns>
     public static Task<HttpResponse> ExecuteWithContent(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, CancellationToken cancellationToken)
     {
         HttpRequestMessage request = new(httpMethod, uri)
@@ -148,7 +234,19 @@ public static class HttpClientExtension
         return Execute(httpClient, request, cancellationToken);
     }
 
-    public static Task<HttpResponse<T>> ExecuteWithContent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Executes an HTTP request with a provided string as the content and returns the response as a deserialized object of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of object to deserialize the response into.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="content">The string representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
