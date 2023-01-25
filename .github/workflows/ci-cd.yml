@@ -74,7 +74,7 @@ jobs:
             version_notes=""
             lines=$(wc -l < ${version_file})
             if [ "$lines" -gt 0 ]; then
-              version=$(tail -n1 ${version_file})
+              version=$(head -n1 ${version_file})
               version="$(echo -e "${version}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
               if [ "$lines" -gt 1 ]; then
                 version_notes=$(tail -n +2 ${version_file})
