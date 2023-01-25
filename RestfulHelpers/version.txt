@@ -1,1 +1,3 @@
 0.1.0-prerelease.7
+* Initial prerelease
+* Added code documentation
