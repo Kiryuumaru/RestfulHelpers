@@ -68,10 +68,12 @@ jobs:
               project_dir_os_path="${project_dir_os_path//\//\\}"
               version_file_os_path="${version_file_os_path//\//\\}"
             fi
-            # █████████████████████ Get version from file ██████████████████████
+            # █████████████████████ Get version and notes from file ██████████████████████
             version_file="${project_dir}/${version_file}"
             version=$(head -n1 ${version_file})
+            version_notes=$(tail -n +2 ${version_file})
             version="$(echo -e "${version}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
+            version_notes="$(echo -e "${version_notes}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
             # ███████████████████████ Validate version █████████████████████████
             if [ $(semver validate "${version}") != 'valid' ]; then
               echo "::error file=${version_file},title=Version Control::Version file is not valid."
@@ -163,6 +165,7 @@ jobs:
               --arg version_prerelease_number "$version_prerelease_number" \
               --arg version_with_v "$version_with_v" \
               --arg version_release_part_with_v "$version_release_part_with_v" \
+              --arg version_notes "$version_notes" \
               --arg build "$build" \
               --arg full_version "$full_version" \
               --arg full_version_with_v "$full_version_with_v" \
@@ -182,6 +185,7 @@ jobs:
                 .version_prerelease_number=$version_prerelease_number |
                 .version_with_v=$version_with_v |
                 .version_release_part_with_v=$version_release_part_with_v |
+                .version_notes=$version_notes |
                 .build=$build |
                 .full_version=$full_version |
                 .full_version_with_v=$full_version_with_v |
@@ -462,15 +466,11 @@ jobs:
             # █████████████████████████████████████████ NuGet Type ██████████████████████████████████████████
             # ███████████████████████████████████████████████████████████████████████████████████████████████
             nuget)
-              version_file="${{ matrix.project_dir }}/${{ matrix.version_file }}"
-              version_notes=$(tail -n +2 ${version_file})
-              version_notes="$(echo -e "${version_notes}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
-              echo "${version_notes}"
               dotnet build '${{ matrix.project_os_path }}' --no-restore --configuration Release
               dotnet pack '${{ matrix.project_os_path }}' -o output --no-restore --no-build --configuration Release --include-symbols \
                 -p SymbolPackageFormat=snupkg \
                 -p PackageVersion=${{ matrix.platform_version }} \
-                -p PackageReleaseNotes="${version_notes}"
+                -p PackageReleaseNotes="$${{ matrix.version_notes }}"
               ;;
           esac
       - name: Upload artifacts
