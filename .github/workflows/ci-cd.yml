@@ -462,10 +462,15 @@ jobs:
             # █████████████████████████████████████████ NuGet Type ██████████████████████████████████████████
             # ███████████████████████████████████████████████████████████████████████████████████████████████
             nuget)
+              version_file="${{ matrix.project_dir }}/${{ matrix.version_file }}"
+              version_notes=$(tail -n +2 ${version_file})
+              version_notes="$(echo -e "${version_notes}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
+              echo "${version_notes}"
               dotnet build '${{ matrix.project_os_path }}' --no-restore --configuration Release
               dotnet pack '${{ matrix.project_os_path }}' -o output --no-restore --no-build --configuration Release --include-symbols \
                 -p SymbolPackageFormat=snupkg \
-                -p PackageVersion=${{ matrix.platform_version }}
+                -p PackageVersion=${{ matrix.platform_version }} \
+                -p PackageReleaseNotes='"${version_notes}"'
               ;;
           esac
       - name: Upload artifacts
