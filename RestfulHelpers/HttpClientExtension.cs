@@ -66,6 +66,20 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    /// <exception cref="JsonException">
+    /// The JSON is invalid.
+    ///
+    /// -or-
+    ///
+    /// <typeparamref name="T" /> is not compatible with the JSON.
+    ///
+    /// -or-
+    ///
+    /// There is remaining data in the string beyond a single JSON value.</exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
+    /// for <typeparamref name="T"/> or its serializable members.
+    /// </exception>
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static async Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
@@ -125,6 +139,20 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    /// <exception cref="JsonException">
+    /// The JSON is invalid.
+    ///
+    /// -or-
+    ///
+    /// <typeparamref name="T" /> is not compatible with the JSON.
+    ///
+    /// -or-
+    ///
+    /// There is remaining data in the string beyond a single JSON value.</exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
+    /// for <typeparamref name="T"/> or its serializable members.
+    /// </exception>
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
@@ -154,6 +182,20 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    /// <exception cref="JsonException">
+    /// The JSON is invalid.
+    ///
+    /// -or-
+    ///
+    /// <typeparamref name="T" /> is not compatible with the JSON.
+    ///
+    /// -or-
+    ///
+    /// There is remaining data in the string beyond a single JSON value.</exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
+    /// for <typeparamref name="T"/> or its serializable members.
+    /// </exception>
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
@@ -197,6 +239,20 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    /// <exception cref="JsonException">
+    /// The JSON is invalid.
+    ///
+    /// -or-
+    ///
+    /// <typeparamref name="T" /> is not compatible with the JSON.
+    ///
+    /// -or-
+    ///
+    /// There is remaining data in the string beyond a single JSON value.</exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
+    /// for <typeparamref name="T"/> or its serializable members.
+    /// </exception>
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
@@ -245,6 +301,20 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the response.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResponse{T}"/> object representing the response to the request and the deserialized object.</returns>
+    /// <exception cref="JsonException">
+    /// The JSON is invalid.
+    ///
+    /// -or-
+    ///
+    /// <typeparamref name="T" /> is not compatible with the JSON.
+    ///
+    /// -or-
+    ///
+    /// There is remaining data in the string beyond a single JSON value.</exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
+    /// for <typeparamref name="T"/> or its serializable members.
+    /// </exception>
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResponse<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions jsonSerializerOptions, CancellationToken cancellationToken)
     {
