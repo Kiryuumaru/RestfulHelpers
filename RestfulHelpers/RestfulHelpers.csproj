@@ -23,10 +23,6 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <PackageReleaseNotes>* Initial release.</PackageReleaseNotes>
-  </PropertyGroup>
-
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\LICENSE" Pack="true" PackagePath="" />

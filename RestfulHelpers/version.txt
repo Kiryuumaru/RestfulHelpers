@@ -1,3 +1,3 @@
-0.1.0-prerelease.8
+0.1.0-prerelease.9
 * Initial prerelease
 * Added code documentation

@@ -470,7 +470,7 @@ jobs:
               dotnet pack '${{ matrix.project_os_path }}' -o output --no-restore --no-build --configuration Release --include-symbols \
                 -p SymbolPackageFormat=snupkg \
                 -p PackageVersion=${{ matrix.platform_version }} \
-                -p PackageReleaseNotes='"${version_notes}"'
+                -p PackageReleaseNotes="${version_notes}"
               ;;
           esac
       - name: Upload artifacts
