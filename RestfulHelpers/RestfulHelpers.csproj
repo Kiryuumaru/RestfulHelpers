@@ -34,7 +34,7 @@
     <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
   
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="7.0.1" />
   </ItemGroup>
 
