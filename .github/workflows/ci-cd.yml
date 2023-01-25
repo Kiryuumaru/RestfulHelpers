@@ -81,6 +81,9 @@ jobs:
                 version_notes="$(echo -e "${version_notes}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
               fi
             fi
+            echo "${lines}"
+            echo "${version}"
+            echo "${version_notes}"
             # ███████████████████████ Validate version █████████████████████████
             if [ $(semver validate "${version}") != 'valid' ]; then
               echo "::error file=${version_file},title=Version Control::Version file is not valid."
