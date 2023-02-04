@@ -1,4 +1,5 @@
-﻿using RestfulHelpers.Interface;
+﻿using RestfulHelpers.Common.Exceptions;
+using RestfulHelpers.Interface;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -70,7 +71,7 @@ public class Response<TResult> : IResponse
     /// <inheritdoc/>
     public Exception? Error
     {
-        get => error == null && Result == null ? new NullReferenceException($"Response has no \"{nameof(Result)}\".") : error;
+        get => error == null && Result == null ? new EmptyResultException() : error;
         set => error = value;
     }
 

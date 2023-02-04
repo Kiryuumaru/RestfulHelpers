@@ -1,2 +1,2 @@
-0.1.0
-* Initial release
+0.1.1
+* Added special exceptions for responses with empty results and no error.
