@@ -1,2 +1,2 @@
-0.1.1
-* Added special exceptions for responses with empty results and no error.
+0.1.2
+* Isolated TransactionHelpers

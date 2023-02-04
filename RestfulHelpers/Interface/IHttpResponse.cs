@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using RestfulHelpers.Common;
+using TransactionHelpers.Interface;
 
 namespace RestfulHelpers.Interface;
 
