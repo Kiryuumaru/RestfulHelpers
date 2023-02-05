@@ -33,16 +33,28 @@ jobs:
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           PRESENTATION='[]'
           TEST='[]'
+          PRESENTATION_PUBLISH='[]'
+          has_presentation=false
+          has_test=false
+          has_release=false
           while read -r json_file; do
             while read -r item; do
+              if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
+                continue
+              fi
               item=$(jq --arg config_file "$json_file" '. |= (.config_file=$config_file)' <<< "${item}")
               PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
+              has_presentation=true
             done <<< $(jq -c '.[]' "$json_file")
           done <<< $(find . -name "presentation.cicd.json")
           while read -r json_file; do
             while read -r item; do
+              if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
+                continue
+              fi
               item=$(jq --arg config_file "$json_file" '. |= (.config_file=$config_file)' <<< "${item}")
               TEST=$(jq --argjson item "$item" '. += [$item]' <<< "${TEST}")
+              has_test=true
             done <<< $(jq -c '.[]' "$json_file")
           done <<< $(find . -name "test.cicd.json")
           # ███████████████████████████████████████████████████████████████████████████████████████████████
@@ -50,7 +62,6 @@ jobs:
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           wget -q -O /usr/local/bin/semver https://raw.githubusercontent.com/fsaintjacques/semver-tool/master/src/semver
           chmod +x /usr/local/bin/semver
-          has_release=false
           # ██████████████████████ Get build number ██████████████████████████
           last_build=0
           is_first_build=true
@@ -60,233 +71,231 @@ jobs:
             break
           done
           let "build = $last_build + 1"
-          while read -r config_file enable id type project_dir version_file platform_version_format release_tagging builds_on maui_platform; do
-            if [ ${enable} != 'true' ]; then
-              continue
-            fi
-            # ████████████████████ Resolve names and paths █████████████████████
-            project_name="${project_dir##**/}.csproj"
-            project="${project_dir}/${project_name}"
-            project_os_path="${project}"
-            project_dir_os_path="${project_dir}"
-            version_file_os_path="${version_file}"
-            config_file_os_path="${config_file}"
-            if [ ${builds_on} == 'windows-2022' ]; then
-              project_os_path="${project_os_path//\//\\}"
-              project_dir_os_path="${project_dir_os_path//\//\\}"
-              version_file_os_path="${version_file_os_path//\//\\}"
-              config_file_os_path="${config_file_os_path//\//\\}"
-            fi
-            # █████████████████████ Get version and notes from file ██████████████████████
-            version_file="${project_dir}/${version_file}"
-            version=""
-            version_notes=""
-            lines=$(wc -l < ${version_file})
-            if [ "$lines" -ge 0 ]; then
-              version=$(head -n1 ${version_file})
-              version="$(echo -e "${version}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
-              if [ "$lines" -ge 1 ]; then
-                version_notes=$(tail -n +2 ${version_file})
-                version_notes="$(echo -e "${version_notes}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
+          if [ ${has_presentation} == 'true' ]; then
+            while read -r config_file id type project_dir version_file platform_version_format release_tagging builds_on maui_platform; do
+              # ████████████████████ Resolve names and paths █████████████████████
+              project_name="${project_dir##**/}.csproj"
+              project="${project_dir}/${project_name}"
+              project_os_path="${project}"
+              project_dir_os_path="${project_dir}"
+              version_file_os_path="${version_file}"
+              config_file_os_path="${config_file}"
+              if [ ${builds_on} == 'windows-2022' ]; then
+                project_os_path="${project_os_path//\//\\}"
+                project_dir_os_path="${project_dir_os_path//\//\\}"
+                version_file_os_path="${version_file_os_path//\//\\}"
+                config_file_os_path="${config_file_os_path//\//\\}"
               fi
-            fi
-            # ███████████████████████ Validate version █████████████████████████
-            if [ $(semver validate "${version}") != 'valid' ]; then
-              echo "::error file=${version_file},title=Version Control::Version file is not valid."
-              exit 1
-            fi
-            # ██████████████████ Get latest version from tags ██████████████████
-            latest_version="0.0.0"
-            release_tag="v*"
-            case "${release_tagging}" in
-              with_id)
-                release_tag="${id}/*"
-                for tag in $(git tag -l --sort=-v:refname "${release_tag}"); do
-                  tag_split=(${tag//// })
-                  tag_version=${tag_split[1]}
-                  if [ $(semver validate "${tag_version}") == 'valid' ]; then
-                    latest_version=${tag_version}
-                    break
-                  fi
-                done
-                ;;
-              no_id)
-                release_tag="v*"
-                for tag in $(git tag -l --sort=-v:refname "${release_tag}"); do
-                  if [ $(semver validate "${tag}") == 'valid' ]; then
-                    latest_version=${tag}
-                    break
-                  fi
-                done
-                ;;
-            esac
-            # █████████ Compare latest version with version from file ██████████
-            version_changed=false
-            if [ $(semver compare "${version}" "${latest_version}") -gt 0 ]; then
-              version_changed=true
-              has_release=true
-            fi
-            # ████████████████████ Create version types ████████████████████████
-            arrVersion=(${version//-/ })
-            version_release_part=${arrVersion[0]}
-            version_prerelease_part=${arrVersion[1]}
-            version_prerelease_part_arr=(${version_prerelease_part//./ })
-            version_prerelease_type=${version_prerelease_part_arr[0]}
-            version_prerelease_number=${version_prerelease_part_arr[1]}
-            version_with_v=v${version}
-            version_release_part_with_v=v${arrVersion[0]}
-            full_version=${version}+build.${build}
-            full_version_with_v=${version_with_v}+build.${build}
-            is_prerelease=false
-            if [ "$version_prerelease_part" != "" ];then
-              is_prerelease=true
-            fi
-            # █████████████████ Create platform version types ██████████████████
-            platform_version=${full_version}
-            case ${platform_version_format} in
-              version)
-                platform_version=${version}
-                ;;
-              version_release_part)
-                platform_version=${version_release_part}
-                ;;
-              version_with_v)
-                platform_version=${version_with_v}
-                ;;
-              version_release_part_with_v)
-                platform_version=${version_release_part_with_v}
-                ;;
-              build)
-                platform_version=${build}
-                ;;
-              full_version)
-                platform_version=${full_version}
-                ;;
-              full_version_with_v)
-                platform_version=${full_version_with_v}
-                ;;
-            esac
-            # ████████████ Update matrix with general polyfills ████████████████
-            PRESENTATION=$(jq \
-              --arg id "$id" \
-              --arg project_name "$project_name" \
-              --arg project "$project" \
-              --arg project_os_path "$project_os_path" \
-              --arg project_dir_os_path "$project_dir_os_path" \
-              --arg version_file_os_path "$version_file_os_path" \
-              --arg config_file_os_path "$config_file_os_path" \
-              --arg version "$version" \
-              --arg version_release_part "$version_release_part" \
-              --arg version_prerelease_part "$version_prerelease_part" \
-              --arg version_prerelease_type "$version_prerelease_type" \
-              --arg version_prerelease_number "$version_prerelease_number" \
-              --arg version_with_v "$version_with_v" \
-              --arg version_release_part_with_v "$version_release_part_with_v" \
-              --arg version_notes "$version_notes" \
-              --arg build "$build" \
-              --arg full_version "$full_version" \
-              --arg full_version_with_v "$full_version_with_v" \
-              --arg is_prerelease "$is_prerelease" \
-              --arg platform_version "$platform_version" \
-              --arg version_changed "$version_changed" \
-              '(.[] | select(.id == $id)) |= (
-                .project_name=$project_name |
-                .project=$project |
-                .project_os_path=$project_os_path |
-                .project_dir_os_path=$project_dir_os_path |
-                .version_file_os_path=$version_file_os_path |
-                .config_file_os_path=$config_file_os_path |
-                .version=$version |
-                .version_release_part=$version_release_part |
-                .version_prerelease_part=$version_prerelease_part |
-                .version_prerelease_type=$version_prerelease_type |
-                .version_prerelease_number=$version_prerelease_number |
-                .version_with_v=$version_with_v |
-                .version_release_part_with_v=$version_release_part_with_v |
-                .version_notes=$version_notes |
-                .build=$build |
-                .full_version=$full_version |
-                .full_version_with_v=$full_version_with_v |
-                .is_prerelease=$is_prerelease |
-                .platform_version=$platform_version |
-                .version_changed=$version_changed)' \
-              <<< "${PRESENTATION}")
-            # █████████████████████ Per platform polyfills █████████████████████
-            case ${type} in
-              maui)
-                maui_framework=""
-                case ${maui_platform} in
-                  android)
-                    maui_framework="net${{ env.DOTNET_VERSION }}-android"
-                    maui_android_release_track="internal"
-                    if [ ${{ github.ref }} == "refs/heads/master" ]; then
-                      if [ "$is_prerelease" = true ]; then
-                        maui_android_release_track=$version_prerelease_type
-                      else
-                        maui_android_release_track="production"
-                      fi
+              # █████████████████████ Get version and notes from file ██████████████████████
+              version_file="${project_dir}/${version_file}"
+              version=""
+              version_notes=""
+              lines=$(wc -l < ${version_file})
+              if [ "$lines" -ge 0 ]; then
+                version=$(head -n1 ${version_file})
+                version="$(echo -e "${version}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
+                if [ "$lines" -ge 1 ]; then
+                  version_notes=$(tail -n +2 ${version_file})
+                  version_notes="$(echo -e "${version_notes}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
+                fi
+              fi
+              # ███████████████████████ Validate version █████████████████████████
+              if [ $(semver validate "${version}") != 'valid' ]; then
+                echo "::error file=${version_file},title=Version Control::Version file is not valid."
+                exit 1
+              fi
+              # ██████████████████ Get latest version from tags ██████████████████
+              latest_version="0.0.0"
+              release_tag="v*"
+              case "${release_tagging}" in
+                with_id)
+                  release_tag="${id}/*"
+                  for tag in $(git tag -l --sort=-v:refname "${release_tag}"); do
+                    tag_split=(${tag//// })
+                    tag_version=${tag_split[1]}
+                    if [ $(semver validate "${tag_version}") == 'valid' ]; then
+                        latest_version=${tag_version}
+                        break
                     fi
-                    PRESENTATION=$(jq \
-                      --arg id "$id" \
-                      --arg maui_android_release_track "$maui_android_release_track" \
-                      '(.[] | select(.id == $id)) |= (
-                        .maui_android_release_track=$maui_android_release_track)' \
-                      <<< "${PRESENTATION}")
-                    ;;
-                  ios)
-                    maui_framework="net${{ env.DOTNET_VERSION }}-ios"
-                    ;;
-                  windows)
-                    maui_framework="net${{ env.DOTNET_VERSION }}-windows10.0.19041.0"
-                    ;;
-                  maccatalyst)
-                    maui_framework="net${{ env.DOTNET_VERSION }}-maccatalyst"
-                    ;;
-                esac
-                PRESENTATION=$(jq \
-                  --arg id "$id" \
-                  --arg maui_framework "$maui_framework" \
-                  '(.[] | select(.id == $id)) |= (
-                    .maui_framework=$maui_framework)' \
-                  <<< "${PRESENTATION}")
-                ;;
-              web_static)
-                ;;
-              web_server)
-                ;;
-            esac
-          done <<< $(jq -r '.[] | "\(.config_file) \(.enable) \(.id) \(.type) \(.project_dir) \(.version_file) \(.platform_version_format) \(.release_tagging) \(.builds_on) \(.maui_platform)"' <<< "${PRESENTATION}")
+                  done
+                  ;;
+                no_id)
+                  release_tag="v*"
+                  for tag in $(git tag -l --sort=-v:refname "${release_tag}"); do
+                    if [ $(semver validate "${tag}") == 'valid' ]; then
+                        latest_version=${tag}
+                        break
+                    fi
+                  done
+                  ;;
+              esac
+              # █████████ Compare latest version with version from file ██████████
+              version_changed=false
+              if [ $(semver compare "${version}" "${latest_version}") -gt 0 ]; then
+                version_changed=true
+                has_release=true
+              fi
+              # ████████████████████ Create version types ████████████████████████
+              arrVersion=(${version//-/ })
+              version_release_part=${arrVersion[0]}
+              version_prerelease_part=${arrVersion[1]}
+              version_prerelease_part_arr=(${version_prerelease_part//./ })
+              version_prerelease_type=${version_prerelease_part_arr[0]}
+              version_prerelease_number=${version_prerelease_part_arr[1]}
+              version_with_v=v${version}
+              version_release_part_with_v=v${arrVersion[0]}
+              full_version=${version}+build.${build}
+              full_version_with_v=${version_with_v}+build.${build}
+              is_prerelease=false
+              if [ "$version_prerelease_part" != "" ];then
+                is_prerelease=true
+              fi
+              # █████████████████ Create platform version types ██████████████████
+              platform_version=${full_version}
+              case ${platform_version_format} in
+                version)
+                  platform_version=${version}
+                  ;;
+                version_release_part)
+                  platform_version=${version_release_part}
+                  ;;
+                version_with_v)
+                  platform_version=${version_with_v}
+                  ;;
+                version_release_part_with_v)
+                  platform_version=${version_release_part_with_v}
+                  ;;
+                build)
+                  platform_version=${build}
+                  ;;
+                full_version)
+                  platform_version=${full_version}
+                  ;;
+                full_version_with_v)
+                  platform_version=${full_version_with_v}
+                  ;;
+              esac
+              # ████████████ Update matrix with general polyfills ████████████████
+              PRESENTATION=$(jq \
+                --arg id "$id" \
+                --arg project_name "$project_name" \
+                --arg project "$project" \
+                --arg project_os_path "$project_os_path" \
+                --arg project_dir_os_path "$project_dir_os_path" \
+                --arg version_file_os_path "$version_file_os_path" \
+                --arg config_file_os_path "$config_file_os_path" \
+                --arg version "$version" \
+                --arg version_release_part "$version_release_part" \
+                --arg version_prerelease_part "$version_prerelease_part" \
+                --arg version_prerelease_type "$version_prerelease_type" \
+                --arg version_prerelease_number "$version_prerelease_number" \
+                --arg version_with_v "$version_with_v" \
+                --arg version_release_part_with_v "$version_release_part_with_v" \
+                --arg version_notes "$version_notes" \
+                --arg build "$build" \
+                --arg full_version "$full_version" \
+                --arg full_version_with_v "$full_version_with_v" \
+                --arg is_prerelease "$is_prerelease" \
+                --arg platform_version "$platform_version" \
+                --arg version_changed "$version_changed" \
+                '(.[] | select(.id == $id)) |= (
+                  .project_name=$project_name |
+                  .project=$project |
+                  .project_os_path=$project_os_path |
+                  .project_dir_os_path=$project_dir_os_path |
+                  .version_file_os_path=$version_file_os_path |
+                  .config_file_os_path=$config_file_os_path |
+                  .version=$version |
+                  .version_release_part=$version_release_part |
+                  .version_prerelease_part=$version_prerelease_part |
+                  .version_prerelease_type=$version_prerelease_type |
+                  .version_prerelease_number=$version_prerelease_number |
+                  .version_with_v=$version_with_v |
+                  .version_release_part_with_v=$version_release_part_with_v |
+                  .version_notes=$version_notes |
+                  .build=$build |
+                  .full_version=$full_version |
+                  .full_version_with_v=$full_version_with_v |
+                  .is_prerelease=$is_prerelease |
+                  .platform_version=$platform_version |
+                  .version_changed=$version_changed)' \
+                <<< "${PRESENTATION}")
+              # █████████████████████ Per platform polyfills █████████████████████
+              case ${type} in
+                maui)
+                  maui_framework=""
+                  case ${maui_platform} in
+                    android)
+                        maui_framework="net${{ env.DOTNET_VERSION }}-android"
+                        maui_android_release_track="internal"
+                        if [ ${{ github.ref }} == "refs/heads/master" ]; then
+                          if [ "$is_prerelease" = true ]; then
+                            maui_android_release_track=$version_prerelease_type
+                          else
+                            maui_android_release_track="production"
+                          fi
+                        fi
+                        PRESENTATION=$(jq \
+                          --arg id "$id" \
+                          --arg maui_android_release_track "$maui_android_release_track" \
+                          '(.[] | select(.id == $id)) |= (
+                            .maui_android_release_track=$maui_android_release_track)' \
+                          <<< "${PRESENTATION}")
+                        ;;
+                    ios)
+                        maui_framework="net${{ env.DOTNET_VERSION }}-ios"
+                        ;;
+                    windows)
+                        maui_framework="net${{ env.DOTNET_VERSION }}-windows10.0.19041.0"
+                        ;;
+                    maccatalyst)
+                        maui_framework="net${{ env.DOTNET_VERSION }}-maccatalyst"
+                        ;;
+                  esac
+                  PRESENTATION=$(jq \
+                    --arg id "$id" \
+                    --arg maui_framework "$maui_framework" \
+                    '(.[] | select(.id == $id)) |= (
+                        .maui_framework=$maui_framework)' \
+                    <<< "${PRESENTATION}")
+                  ;;
+                web_static)
+                  ;;
+                web_server)
+                  ;;
+              esac
+            done <<< $(jq -r '.[] | "\(.config_file) \(.id) \(.type) \(.project_dir) \(.version_file) \(.platform_version_format) \(.release_tagging) \(.builds_on) \(.maui_platform)"' <<< "${PRESENTATION}")
+          fi
           PRESENTATION_PUBLISH=$(jq 'del(.[] | select(.version_changed == "false"))' <<< "${PRESENTATION}")
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ██████████████████████████████████ Polyfill unit test values ██████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
-          while read -r config_file enable id project_dir builds_on; do
-            if [ ${enable} != 'true' ]; then
-              continue
-            fi
-            # ████████████████████████ Resolve paths ███████████████████████████
-            project_name="${project_dir##**/}.csproj"
-            project="${project_dir}/${project_name}"
-            project_os_path="${project}"
-            config_file_os_path="${config_file}"
-            if [ ${builds_on} == 'windows-2022' ]; then
-              project_os_path="${project_os_path//\//\\}"
-              config_file_os_path="${config_file_os_path//\//\\}"
-            fi
-            # █████████████████████████ Update matrix ██████████████████████████
-            TEST=$(jq \
-              --arg id "$id" \
-              --arg project_name "$project_name" \
-              --arg project "$project" \
-              --arg project_os_path "$project_os_path" \
-              --arg config_file_os_path "$config_file_os_path" \
-              '(.[] | select(.id == $id)) |= (
-                .project_name=$project_name |
-                .project=$project |
-                .project_os_path=$project_os_path |
-                .config_file_os_path=$config_file_os_path)' \
-              <<< "${TEST}")
-          done <<< $(jq -r '.[] | "\(.config_file) \(.enable) \(.id) \(.project_dir) \(.builds_on)"' <<< "${TEST}")
+          if [ ${has_test} == 'true' ]; then
+            while read -r config_file id project_dir builds_on; do
+              # ████████████████████████ Resolve paths ███████████████████████████
+              project_name="${project_dir##**/}.csproj"
+              project="${project_dir}/${project_name}"
+              project_os_path="${project}"
+              config_file_os_path="${config_file}"
+              if [ ${builds_on} == 'windows-2022' ]; then
+                project_os_path="${project_os_path//\//\\}"
+                config_file_os_path="${config_file_os_path//\//\\}"
+              fi
+              # █████████████████████████ Update matrix ██████████████████████████
+              TEST=$(jq \
+                --arg id "$id" \
+                --arg project_name "$project_name" \
+                --arg project "$project" \
+                --arg project_os_path "$project_os_path" \
+                --arg config_file_os_path "$config_file_os_path" \
+                '(.[] | select(.id == $id)) |= (
+                  .project_name=$project_name |
+                  .project=$project |
+                  .project_os_path=$project_os_path |
+                  .config_file_os_path=$config_file_os_path)' \
+                <<< "${TEST}")
+            done <<< $(jq -r '.[] | "\(.config_file) \(.id) \(.project_dir) \(.builds_on)"' <<< "${TEST}")
+          fi
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████████████ Print output █████████████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
@@ -305,6 +314,8 @@ jobs:
           echo "# █████████████████████████████████████████████████████████"
           echo "# ████████████████████████ Others █████████████████████████"
           echo "# █████████████████████████████████████████████████████████"
+          echo "\"has_presentation\": ${has_presentation}"
+          echo "\"has_test\": ${has_test}"
           echo "\"build\": ${build}"
           echo "\"is_first_build\": ${is_first_build}"
           echo "\"last_build\": ${last_build}"
@@ -313,11 +324,16 @@ jobs:
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████████████ Export output ████████████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
+          if [ ${has_test} != 'true' ]; then
+            TEST='[{"name":"Skip","builds_on":"ubuntu-22.04","placeholder":"true"}]'
+          fi
           echo "presentation=${PRESENTATION//[$'\t\r\n']}" >> $GITHUB_OUTPUT
           echo "presentation_matrix={\"include\":${PRESENTATION//[$'\t\r\n']}}" >> $GITHUB_OUTPUT
           echo "presentation_publish_matrix={\"include\":${PRESENTATION_PUBLISH//[$'\t\r\n']}}" >> $GITHUB_OUTPUT
           echo "test=${TEST//[$'\t\r\n']}" >> $GITHUB_OUTPUT
           echo "test_matrix={\"include\":${TEST//[$'\t\r\n']}}" >> $GITHUB_OUTPUT
+          echo "has_presentation=${has_presentation}" >> $GITHUB_OUTPUT
+          echo "has_test=${has_test}" >> $GITHUB_OUTPUT
           echo "build=${build}" >> $GITHUB_OUTPUT
           echo "is_first_build=${is_first_build}" >> $GITHUB_OUTPUT
           echo "last_build=${last_build}" >> $GITHUB_OUTPUT
@@ -328,6 +344,8 @@ jobs:
       presentation_publish_matrix: ${{ steps.setup_matrix.outputs.presentation_publish_matrix }}
       test: ${{ steps.setup_matrix.outputs.test }}
       test_matrix: ${{ steps.setup_matrix.outputs.test_matrix }}
+      has_presentation: ${{ steps.setup_matrix.outputs.has_presentation }}
+      has_test: ${{ steps.setup_matrix.outputs.has_test }}
       build: ${{ steps.setup_matrix.outputs.build }}
       is_first_build: ${{ steps.setup_matrix.outputs.is_first_build }}
       last_build: ${{ steps.setup_matrix.outputs.last_build }}
@@ -335,28 +353,32 @@ jobs:
 
   test:
     needs: [setup]
+    if: ${{ needs.setup.outputs.has_test == 'true' || needs.setup.outputs.has_release == 'true' }}
     strategy:
       matrix: ${{ fromJson(needs.setup.outputs.test_matrix) }}
     name: Test - ${{ matrix.name }}
     runs-on: ${{ matrix.builds_on }}
     steps:
       - uses: actions/checkout@v3
+        if: ${{ matrix.placeholder != 'true' }}
       - name: Setup .NET SDK ${{ env.DOTNET_VERSION }}
+        if: ${{ matrix.placeholder != 'true' }}
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Build - ${{ matrix.name }}
+        if: ${{ matrix.placeholder != 'true' }}
         run: |
           dotnet restore '${{ matrix.project_os_path }}'
           dotnet build '${{ matrix.project_os_path }}' --no-restore --configuration Release --no-restore
       - name: Run Test - ${{ matrix.name }}
+        if: ${{ matrix.placeholder != 'true' }}
         run: |
           dotnet test '${{ matrix.project_os_path }}' --no-restore --verbosity normal
           
   build:
     needs: [setup, test]
     if: ${{ needs.setup.outputs.has_release == 'true' }}
-    #if: contains('refs/heads/rel', github.ref)
     strategy:
       matrix: ${{ fromJson(needs.setup.outputs.presentation_publish_matrix) }}
     name: Build - ${{ matrix.name }}
