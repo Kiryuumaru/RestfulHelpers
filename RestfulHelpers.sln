@@ -3,14 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33312.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestfulHelpers", "RestfulHelpers\RestfulHelpers.csproj", "{BB2B2BD7-B62E-4EB6-B003-9CD668560DAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestfulHelpers", "RestfulHelpers\RestfulHelpers.csproj", "{BB2B2BD7-B62E-4EB6-B003-9CD668560DAE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{16385A7A-F79B-4CA9-9A4A-871321098160}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\ci-cd.yml = .github\workflows\ci-cd.yml
+		.github\dependabot.yml = .github\dependabot.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestfulHelpers.UnitTest", "RestfulHelpers.UnitTest\RestfulHelpers.UnitTest.csproj", "{F39E40F3-C04F-4521-93E4-1CCC8355C505}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestfulHelpers.UnitTest", "RestfulHelpers.UnitTest\RestfulHelpers.UnitTest.csproj", "{F39E40F3-C04F-4521-93E4-1CCC8355C505}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
