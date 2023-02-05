@@ -2,11 +2,25 @@ version: 2
 updates:
 
   - package-ecosystem: "nuget"
+    target-branch: "master"
     directory: "/"
     schedule:
       interval: "daily"
 
   - package-ecosystem: "npm"
+    target-branch: "master"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "nuget"
+    target-branch: "dev"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "npm"
+    target-branch: "dev"
     directory: "/"
     schedule:
       interval: "daily"
