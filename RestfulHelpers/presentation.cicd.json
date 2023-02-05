@@ -1,5 +1,6 @@
 [
   {
+    "enable": true,
     "id": "restfulhelpers_nuget",
     "name": "RestfulHelpers NuGet",
     "project_dir": "RestfulHelpers",

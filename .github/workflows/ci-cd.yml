@@ -12,6 +12,8 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_APIKEY: ${{ secrets.FIREBASE_APIKEY }}
 
 jobs:
 
@@ -58,7 +60,10 @@ jobs:
             break
           done
           let "build = $last_build + 1"
-          while read -r config_file id type project_dir version_file platform_version_format release_tagging builds_on maui_platform; do
+          while read -r config_file enable id type project_dir version_file platform_version_format release_tagging builds_on maui_platform; do
+            if [ ${enable} != 'true' ]; then
+              continue
+            fi
             # ████████████████████ Resolve names and paths █████████████████████
             project_name="${project_dir##**/}.csproj"
             project="${project_dir}/${project_name}"
@@ -250,12 +255,15 @@ jobs:
               web_server)
                 ;;
             esac
-          done <<< $(jq -r '.[] | .config_file + " " + .id + " " + .type + " " + .project_dir + " " + .version_file + " " + .platform_version_format + " " + .release_tagging + " " + .builds_on + " " + .maui_platform' <<< "${PRESENTATION}")
+          done <<< $(jq -r '.[] | "\(.config_file) \(.enable) \(.id) \(.type) \(.project_dir) \(.version_file) \(.platform_version_format) \(.release_tagging) \(.builds_on) \(.maui_platform)"' <<< "${PRESENTATION}")
           PRESENTATION_PUBLISH=$(jq 'del(.[] | select(.version_changed == "false"))' <<< "${PRESENTATION}")
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ██████████████████████████████████ Polyfill unit test values ██████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
-          while read -r config_file id project_dir builds_on; do
+          while read -r config_file enable id project_dir builds_on; do
+            if [ ${enable} != 'true' ]; then
+              continue
+            fi
             # ████████████████████████ Resolve paths ███████████████████████████
             project_name="${project_dir##**/}.csproj"
             project="${project_dir}/${project_name}"
@@ -278,7 +286,7 @@ jobs:
                 .project_os_path=$project_os_path |
                 .config_file_os_path=$config_file_os_path)' \
               <<< "${TEST}")
-          done <<< $(jq -r '.[] | .config_file + " " + .id + " " + .project_dir + " " + .builds_on' <<< "${TEST}")
+          done <<< $(jq -r '.[] | "\(.config_file) \(.enable) \(.id) \(.project_dir) \(.builds_on)"' <<< "${TEST}")
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████████████ Print output █████████████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████

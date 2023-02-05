@@ -1,5 +1,6 @@
 [
   {
+    "enable": true,
     "id": "restfulhelpers_nuget_test",
     "name": "RestfulHelpers Test",
     "project_dir": "RestfulHelpers.UnitTest",
