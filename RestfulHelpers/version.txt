@@ -1,2 +1,2 @@
-0.1.4
-* Cleanups
+0.1.5
+* Bump dependencies
