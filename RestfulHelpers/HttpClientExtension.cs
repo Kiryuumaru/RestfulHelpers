@@ -105,7 +105,7 @@ public static class HttpClientExtension
 #endif
 
             response.Append(statusCode);
-            response.Append(JsonSerializer.Deserialize<T>(httpResponseMessageData, jsonSerializerOptions));
+            response.Append(JsonSerializer.Deserialize<T>(httpResponseMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         }
         catch (Exception ex)
         {
