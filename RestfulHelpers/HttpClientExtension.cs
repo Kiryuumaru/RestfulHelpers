@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using RestfulHelpers.Common;
+using TransactionHelpers;
 
 using static RestfulHelpers.Common.Internals.Message;
 
@@ -25,12 +26,11 @@ public static class HttpClientExtension
     /// <param name="httpRequestMessage">The <see cref="HttpRequestMessage"/> representing the request.</param>
     /// <param name="httpCompletionOption">An <see cref="HttpCompletionOption"/> value that indicates when the operation should complete.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
-    /// <returns>An <see cref="HttpResponse"/> object representing the response to the request.</returns>
+    /// <returns>An <see cref="Response"/> object representing the response to the request.</returns>
     public static async Task<HttpResponse> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage? httpResponseMessage = null;
-        HttpStatusCode statusCode = HttpStatusCode.OK;
         HttpResponse response = new();
+        HttpStatusCode statusCode = HttpStatusCode.OK;
 
         if (httpRequestMessage.Content != null)
         {
@@ -39,18 +39,17 @@ public static class HttpClientExtension
 
         try
         {
-            httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
+            var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
 
             statusCode = httpResponseMessage.StatusCode;
 
             httpResponseMessage.EnsureSuccessStatusCode();
 
-            response.Append(new HttpTransaction(httpRequestMessage, httpResponseMessage, statusCode));
+            response.Append(statusCode);
         }
         catch (Exception ex)
         {
-            response.Append(new HttpTransaction(httpRequestMessage, httpResponseMessage, statusCode));
-            response.Append(ex);
+            response.Append(ex, statusCode);
         }
 
         return response;
@@ -83,9 +82,8 @@ public static class HttpClientExtension
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static async Task<HttpResponse<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage? httpResponseMessage = null;
-        HttpStatusCode statusCode = HttpStatusCode.OK;
         HttpResponse<T> response = new();
+        HttpStatusCode statusCode = HttpStatusCode.OK;
 
         if (httpRequestMessage.Content != null)
         {
@@ -94,7 +92,7 @@ public static class HttpClientExtension
 
         try
         {
-            httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
+            var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
 
             statusCode = httpResponseMessage.StatusCode;
 
@@ -106,13 +104,12 @@ public static class HttpClientExtension
             var httpResponseMessageData = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 #endif
 
-            response.Append(new HttpTransaction(httpRequestMessage, httpResponseMessage, statusCode));
+            response.Append(statusCode);
             response.Append(JsonSerializer.Deserialize<T>(httpResponseMessageData, jsonSerializerOptions));
         }
         catch (Exception ex)
         {
-            response.Append(new HttpTransaction(httpRequestMessage, httpResponseMessage, statusCode));
-            response.Append(ex);
+            response.Append(ex, statusCode);
         }
 
         return response;

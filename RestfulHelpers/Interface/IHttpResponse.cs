@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using RestfulHelpers.Common;
 using TransactionHelpers.Interface;
+using TransactionHelpers;
+using System.Net;
 
 namespace RestfulHelpers.Interface;
 
@@ -12,7 +14,12 @@ namespace RestfulHelpers.Interface;
 public interface IHttpResponse : IResponse
 {
     /// <summary>
-    /// Gets all http transactions made by the request.
+    /// Gets the http error of the response.
     /// </summary>
-    public IReadOnlyList<HttpTransaction> HttpTransactions { get; }
+    HttpError? HttpError { get; }
+
+    /// <summary>
+    /// Gets the status code of the response.
+    /// </summary>
+    HttpStatusCode StatusCode { get; }
 }
