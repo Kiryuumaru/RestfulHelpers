@@ -1,2 +1,2 @@
-0.1.7
-* Bump dependencies
+0.1.8
+* Bump dependency version

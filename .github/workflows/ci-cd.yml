@@ -1,10 +1,13 @@
 ﻿name: CI CD Pipeline
-
+  
 on:
   push:
     branches:
       - 'master'
       - 'dev'
+
+concurrency:
+  group: ci-cd
 
 env:
   DOTNET_VERSION: "7.0"
