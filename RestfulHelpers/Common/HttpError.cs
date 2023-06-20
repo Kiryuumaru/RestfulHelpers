@@ -16,7 +16,7 @@ public class HttpError : Error
     /// <summary>
     /// Gets the status code of the error.
     /// </summary>
-    public HttpStatusCode StatusCode { get; protected set; }
+    public HttpStatusCode StatusCode { get; init; }
 
     /// <summary>
     /// Creates new instance of <see cref="HttpError"/>.
