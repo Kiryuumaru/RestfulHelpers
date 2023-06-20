@@ -45,11 +45,11 @@ public static class HttpClientExtension
 
             httpResponseMessage.EnsureSuccessStatusCode();
 
-            response.Append(statusCode);
+            response = response.Append(statusCode);
         }
         catch (Exception ex)
         {
-            response.Append(ex, statusCode);
+            response = response.Append(ex, statusCode);
         }
 
         return response;
@@ -104,12 +104,12 @@ public static class HttpClientExtension
             var httpResponseMessageData = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 #endif
 
-            response.Append(statusCode);
-            response.Append(JsonSerializer.Deserialize<T>(httpResponseMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+            response = response.Append(statusCode);
+            response = response.Append(JsonSerializer.Deserialize<T>(httpResponseMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         }
         catch (Exception ex)
         {
-            response.Append(ex, statusCode);
+            response = response.Append(ex, statusCode);
         }
 
         return response;

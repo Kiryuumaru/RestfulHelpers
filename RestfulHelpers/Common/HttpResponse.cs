@@ -1,5 +1,6 @@
 ﻿using RestfulHelpers;
 using RestfulHelpers.Common;
+using RestfulHelpers.Common.Internals;
 using RestfulHelpers.Interface;
 using System;
 using System.Collections.Generic;
@@ -18,61 +19,64 @@ namespace RestfulHelpers.Common;
 /// </summary>
 public class HttpResponse : Response, IHttpResponse
 {
+    private HttpStatusCode statusCode;
+
     /// <inheritdoc/>
     public HttpError? HttpError
     {
         get => Error as HttpError;
-        set => Error = value;
+        init => Error = value;
     }
 
     /// <inheritdoc/>
-    public HttpStatusCode StatusCode { get; protected set; }
-
-    /// <summary>
-    /// Creates new instance of <see cref="HttpResponse"/>
-    /// </summary>
-    public HttpResponse()
+    public HttpStatusCode StatusCode
     {
-
-    }
-
-    /// <summary>
-    /// Creates new instance of <see cref="HttpResponse"/>
-    /// </summary>
-    /// <param name="error">The <see cref="Error"/> to initially append.</param>
-    /// <param name="statusCode">The <see cref="HttpStatusCode"/> to initially append.</param>
-    [JsonConstructor]
-    public HttpResponse(Error? error, HttpStatusCode statusCode)
-    {
-        Append(statusCode);
-        Append(error);
+        get => statusCode;
+        init
+        {
+            statusCode = value;
+            if (Error == null && !(((int)statusCode >= 200) && ((int)statusCode <= 299)))
+            {
+                Error = new()
+                {
+                    Message = "StatusCode: " + statusCode
+                };
+            }
+        }
     }
 
     /// <summary>
     /// Appends <see cref="IHttpResponse"/> responses to the response.
     /// </summary>
     /// <param name="responses">The <see cref="IHttpResponse"/> to append.</param>
-    public virtual void Append(params IHttpResponse[] responses)
+    /// <returns>The resulting <see cref="HttpResponse"/> after the append.</returns>
+    public virtual HttpResponse Append(params IHttpResponse[] responses)
     {
         if (responses.LastOrDefault() is IHttpResponse lastResponse)
         {
-            HttpError = lastResponse.HttpError;
-            Error = lastResponse.Error;
-            StatusCode = lastResponse.StatusCode;
+            return new()
+            {
+                Error = lastResponse.Error,
+                HttpError = lastResponse.HttpError,
+                StatusCode = lastResponse.StatusCode,
+            };
         }
+        return this;
     }
 
     /// <summary>
     /// Appends <see cref="HttpStatusCode"/> to the response.
     /// </summary>
     /// <param name="httpStatusCode">The <see cref="HttpStatusCode"/> to append.</param>
-    public virtual void Append(HttpStatusCode httpStatusCode)
+    /// <returns>The resulting <see cref="HttpResponse"/> after the append.</returns>
+    public virtual HttpResponse Append(HttpStatusCode httpStatusCode)
     {
-        StatusCode = httpStatusCode;
-        if (!(((int)httpStatusCode >= 200) && ((int)httpStatusCode <= 299)))
+        return new()
         {
-            Append(new HttpError(null, null, httpStatusCode));
-        }
+            Error = Error,
+            HttpError = HttpError,
+            StatusCode = httpStatusCode
+        };
     }
 
     /// <summary>
@@ -80,14 +84,24 @@ public class HttpResponse : Response, IHttpResponse
     /// </summary>
     /// <param name="exception">The <see cref="System.Exception"/> to append.</param>
     /// <param name="httpStatusCode">The <see cref="HttpStatusCode"/> to append.</param>
-    public virtual void Append(Exception? exception, HttpStatusCode httpStatusCode)
+    /// <returns>The resulting <see cref="HttpResponse"/> after the append.</returns>
+    public virtual HttpResponse Append(Exception? exception, HttpStatusCode httpStatusCode)
     {
-        Append(exception);
-        StatusCode = httpStatusCode;
-        if (!(((int)httpStatusCode >= 200) && ((int)httpStatusCode <= 299)))
+        if (exception == null)
         {
-            Append(new HttpError(exception, exception?.Message, httpStatusCode));
+            return new()
+            {
+                Error = Error,
+                HttpError = HttpError,
+                StatusCode = httpStatusCode
+            };
         }
+        return new()
+        {
+            HttpError = HttpError,
+            Error = new() { Exception = exception },
+            StatusCode = httpStatusCode
+        };
     }
 }
 
@@ -97,49 +111,62 @@ public class HttpResponse : Response, IHttpResponse
 /// <inheritdoc/>
 public class HttpResponse<TResult> : Response<TResult>, IHttpResponse
 {
+    private HttpStatusCode statusCode;
+
     /// <inheritdoc/>
     public HttpError? HttpError
     {
         get => Error as HttpError;
-        set => Error = value;
+        init => Error = value;
     }
 
     /// <inheritdoc/>
-    public HttpStatusCode StatusCode { get; protected set; }
-
-    /// <summary>
-    /// Creates new instance of <see cref="HttpResponse{TResult}"/>
-    /// </summary>
-    public HttpResponse()
+    public HttpStatusCode StatusCode
     {
-
+        get => statusCode;
+        init
+        {
+            statusCode = value;
+            if (Error == null && !(((int)statusCode >= 200) && ((int)statusCode <= 299)))
+            {
+                Error = new()
+                {
+                    Message = "StatusCode: " + statusCode
+                };
+            }
+        }
     }
 
     /// <summary>
-    /// Creates new instance of <see cref="HttpResponse{TResult}"/>
+    /// Appends <typeparamref name="TResult"/> to the response.
     /// </summary>
-    /// <param name="result">The <typeparamref name="TResult"/> to initially append.</param>
-    /// <param name="error">The <see cref="Error"/> to initially append.</param>
-    /// <param name="statusCode">The <see cref="HttpStatusCode"/> to initially append.</param>
-    [JsonConstructor]
-    public HttpResponse(TResult? result, Error? error, HttpStatusCode statusCode)
+    /// <param name="result">The <typeparamref name="TResult"/> to append.</param>
+    /// <returns>The resulting <see cref="HttpResponse{TResult}"/> after the append.</returns>
+    public new virtual HttpResponse<TResult> Append(TResult result)
     {
-        Append(result);
-        Append(statusCode);
-        Append(error);
+        return new()
+        {
+            Error = Error,
+            HttpError = HttpError,
+            StatusCode = StatusCode,
+            Result = result,
+        };
     }
 
     /// <summary>
     /// Appends <see cref="IHttpResponse"/> responses to the response.
     /// </summary>
     /// <param name="httpStatusCode">The <see cref="HttpStatusCode"/> to append.</param>
-    public virtual void Append(HttpStatusCode httpStatusCode)
+    /// <returns>The resulting <see cref="HttpResponse{TResult}"/> after the append.</returns>
+    public virtual HttpResponse<TResult> Append(HttpStatusCode httpStatusCode)
     {
-        StatusCode = httpStatusCode;
-        if (!(((int)httpStatusCode >= 200) && ((int)httpStatusCode <= 299)))
+        return new()
         {
-            Append(new HttpError(null, null, httpStatusCode));
-        }
+            Result = Result,
+            Error = Error,
+            HttpError = HttpError,
+            StatusCode = httpStatusCode
+        };
     }
 
     /// <summary>
@@ -147,31 +174,55 @@ public class HttpResponse<TResult> : Response<TResult>, IHttpResponse
     /// </summary>
     /// <param name="exception">The <see cref="System.Exception"/> to append.</param>
     /// <param name="httpStatusCode">The <see cref="HttpStatusCode"/> to append.</param>
-    public virtual void Append(Exception? exception, HttpStatusCode httpStatusCode)
+    /// <returns>The resulting <see cref="HttpResponse{TResult}"/> after the append.</returns>
+    public virtual HttpResponse<TResult> Append(Exception? exception, HttpStatusCode httpStatusCode)
     {
-        StatusCode = httpStatusCode;
-        Append(exception);
-        if (!(((int)httpStatusCode >= 200) && ((int)httpStatusCode <= 299)))
+        if (exception == null)
         {
-            Append(new HttpError(exception, exception?.Message, httpStatusCode));
+            return new()
+            {
+                Result = Result,
+                Error = Error,
+                HttpError = HttpError,
+                StatusCode = httpStatusCode
+            };
         }
+        return new()
+        {
+            Result = Result,
+            HttpError = HttpError,
+            Error = new() { Exception = exception },
+            StatusCode = httpStatusCode
+        };
     }
 
     /// <summary>
     /// Appends <see cref="IHttpResponse"/> responses to the response.
     /// </summary>
     /// <param name="responses">The <see cref="IHttpResponse"/> to append.</param>
-    public virtual void Append(params IHttpResponse[] responses)
+    /// <returns>The resulting <see cref="HttpResponse{TResult}"/> after the append.</returns>
+    public virtual HttpResponse<TResult> Append(params IHttpResponse[] responses)
     {
         if (responses.LastOrDefault() is IHttpResponse lastResponse)
         {
-            HttpError = lastResponse.HttpError;
-            Error = lastResponse.Error;
             if (lastResponse is HttpResponse<TResult> lastTypedResponse)
             {
-                Result = lastTypedResponse.Result;
-                StatusCode = lastTypedResponse.StatusCode;
+                return new()
+                {
+                    Result = lastTypedResponse.Result,
+                    Error = lastResponse.Error,
+                    HttpError = lastResponse.HttpError,
+                    StatusCode = lastResponse.StatusCode
+                };
             }
+            return new()
+            {
+                Result = Result,
+                Error = lastResponse.Error,
+                HttpError = lastResponse.HttpError,
+                StatusCode = lastResponse.StatusCode
+            };
         }
+        return this;
     }
 }
