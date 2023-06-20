@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <LangVersion>11</LangVersion>
     <TargetFrameworks>netstandard2.0;net6.0;net7.0</TargetFrameworks>
+    <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -40,7 +40,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="TransactionHelpers" Version="1.0.0" />
+    <PackageReference Include="TransactionHelpers" Version="1.0.3" />
   </ItemGroup>
 
 </Project>

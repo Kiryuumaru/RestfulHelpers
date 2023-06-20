@@ -10,7 +10,7 @@ concurrency:
   group: ci-cd
 
 env:
-  DOTNET_VERSION: "7.0"
+  DOTNET_VERSION: "8.0"
   DOTNET_NOLOGO: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -40,26 +40,32 @@ jobs:
           has_presentation=false
           has_test=false
           has_release=false
-          while read -r json_file; do
-            while read -r item; do
-              if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
-                continue
-              fi
-              item=$(jq --arg config_file "$json_file" '. |= (.config_file=$config_file)' <<< "${item}")
-              PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
-              has_presentation=true
-            done <<< $(jq -c '.[]' "$json_file")
-          done <<< $(find . -name "presentation.cicd.json")
-          while read -r json_file; do
-            while read -r item; do
-              if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
-                continue
-              fi
-              item=$(jq --arg config_file "$json_file" '. |= (.config_file=$config_file)' <<< "${item}")
-              TEST=$(jq --argjson item "$item" '. += [$item]' <<< "${TEST}")
-              has_test=true
-            done <<< $(jq -c '.[]' "$json_file")
-          done <<< $(find . -name "test.cicd.json")
+          presentation_config_files=$(find . -name "presentation.cicd.json")
+          if [ ${presentation_config_files} != '' ]; then
+            while read -r json_file; do
+              while read -r item; do
+                if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
+                  continue
+                fi
+                item=$(jq --arg config_file "$json_file" '. |= (.config_file=$config_file)' <<< "${item}")
+                PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
+                has_presentation=true
+              done <<< $(jq -c '.[]' "$json_file")
+            done <<< ${presentation_config_files}
+          fi
+          test_config_files=$(find . -name "test.cicd.json")
+          if [ ${test_config_files} != '' ]; then
+            while read -r json_file; do
+              while read -r item; do
+                if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
+                  continue
+                fi
+                item=$(jq --arg config_file "$json_file" '. |= (.config_file=$config_file)' <<< "${item}")
+                TEST=$(jq --argjson item "$item" '. += [$item]' <<< "${TEST}")
+                has_test=true
+              done <<< $(jq -c '.[]' "$json_file")
+            done <<< ${test_config_files}
+          fi
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████ Polyfill presentation values █████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
@@ -438,6 +444,15 @@ jobs:
             # ███████████████████████████████████████ Web Server Type ███████████████████████████████████████
             # ███████████████████████████████████████████████████████████████████████████████████████████████
             web_server)
+              server_dir_os_path="${{ matrix.project_dir_os_path }}"
+              client_dir_os_path=${server_dir_os_path//.Server/.Client}
+              echo "${client_dir_os_path}"
+              if [ -d "${client_dir_os_path}" ]; then
+                cd "${client_dir_os_path}"
+                npm install
+                npm run tailwind:build 
+                cd '${{ github.workspace }}'
+              fi
               ;;
             # ███████████████████████████████████████████████████████████████████████████████████████████████
             # █████████████████████████████████████████ NuGet Type ██████████████████████████████████████████
@@ -506,10 +521,7 @@ jobs:
             web_server)
               dotnet publish '${{ matrix.project_os_path }}' -o output -c Release \
                 -r linux-x64 \
-                --self-contained \
-                -p PublishProfile=DefaultContainer \
-                -p ContainerImageName=${{ matrix.id }} \
-                -p ContainerImageTags='"build.${{ matrix.build }};${{ matrix.platform_version }};latest"'
+                --self-contained
               ;;
             # ███████████████████████████████████████████████████████████████████████████████████████████████
             # █████████████████████████████████████████ NuGet Type ██████████████████████████████████████████
