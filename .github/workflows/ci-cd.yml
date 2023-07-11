@@ -15,8 +15,6 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-  FIREBASE_APIKEY: ${{ secrets.FIREBASE_APIKEY }}
 
 jobs:
 
@@ -102,10 +100,11 @@ jobs:
               lines=$(wc -l < ${version_file})
               if [ "$lines" -ge 0 ]; then
                 version=$(head -n1 ${version_file})
-                version="$(echo -e "${version}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
+                version=$(echo ${version} | xargs)
+                version=${version//﻿}
                 if [ "$lines" -ge 1 ]; then
                   version_notes=$(tail -n +2 ${version_file})
-                  version_notes="$(echo -e "${version_notes}" | sed -e 's/^[ \t]*//;s/[ \t]*$//')"
+                  version_notes=$(echo ${version_notes} | xargs)
                 fi
               fi
               # ███████████████████████ Validate version █████████████████████████
@@ -647,7 +646,7 @@ jobs:
       - name: Push package to NuGet and GitHub
         if: ${{ matrix.type == 'nuget' }}
         run: |
-            dotnet nuget push ${{ matrix.id }}_${{ matrix.full_version_with_v }}/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s ${{ matrix.nuget_github_source_url }}
+            dotnet nuget push ${{ matrix.id }}_${{ matrix.full_version_with_v }}/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s "${{ matrix.nuget_github_source_url }}"
             dotnet nuget push ${{ matrix.id }}_${{ matrix.full_version_with_v }}/*.nupkg -k ${{ secrets[matrix.nuget_auth_token] }} -s "https://api.nuget.org/v3/index.json"
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       # ████████████████████████████████████████ Tag Release ██████████████████████████████████████████
