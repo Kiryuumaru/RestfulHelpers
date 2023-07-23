@@ -17,14 +17,15 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-
   setup:
     runs-on: ubuntu-22.04
     name: Project Setup
     steps:
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Setup matrix combinations
         id: setup_matrix
         run: |
@@ -39,7 +40,7 @@ jobs:
           has_test=false
           has_release=false
           presentation_config_files=$(find . -name "presentation.cicd.json")
-          if [ ${presentation_config_files} != '' ]; then
+          if [ "${presentation_config_files}" != "" ]; then
             while read -r json_file; do
               while read -r item; do
                 if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
@@ -49,10 +50,10 @@ jobs:
                 PRESENTATION=$(jq --argjson item "$item" '. += [$item]' <<< "${PRESENTATION}")
                 has_presentation=true
               done <<< $(jq -c '.[]' "$json_file")
-            done <<< ${presentation_config_files}
+            done <<< "${presentation_config_files}"
           fi
           test_config_files=$(find . -name "test.cicd.json")
-          if [ ${test_config_files} != '' ]; then
+          if [ "${test_config_files}" != "" ]; then
             while read -r json_file; do
               while read -r item; do
                 if [ $(jq -r '.enable' <<< "${item}") != 'true' ]; then
@@ -62,7 +63,7 @@ jobs:
                 TEST=$(jq --argjson item "$item" '. += [$item]' <<< "${TEST}")
                 has_test=true
               done <<< $(jq -c '.[]' "$json_file")
-            done <<< ${test_config_files}
+            done <<< "${test_config_files}"
           fi
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████ Polyfill presentation values █████████████████████████████████
@@ -78,13 +79,26 @@ jobs:
             break
           done
           let "build = $last_build + 1"
+          all_version_notes_file="$GITHUB_WORKSPACE/version_notes.txt"
+          echo "" > $all_version_notes_file
           if [ ${has_presentation} == 'true' ]; then
-            while read -r config_file id type project_dir version_file platform_version_format release_tagging builds_on maui_platform; do
+            while read -r item; do
               # ████████████████████ Resolve names and paths █████████████████████
+              config_file=$(jq -r '.config_file' <<< "$item")
+              id=$(jq -r '.id' <<< "$item")
+              name=$(jq -r '.name' <<< "$item")
+              type=$(jq -r '.type' <<< "$item")
+              project_dir=$(jq -r '.project_dir' <<< "$item")
+              version_file=$(jq -r '.version_file' <<< "$item")
+              platform_version_format=$(jq -r '.platform_version_format' <<< "$item")
+              release_tagging=$(jq -r '.release_tagging' <<< "$item")
+              builds_on=$(jq -r '.builds_on' <<< "$item")
+              maui_platform=$(jq -r '.maui_platform' <<< "$item")
               project_name="${project_dir##**/}.csproj"
               project="${project_dir}/${project_name}"
               project_os_path="${project}"
               project_dir_os_path="${project_dir}"
+              version_file="${project_dir}/${version_file}"
               version_file_os_path="${version_file}"
               config_file_os_path="${config_file}"
               if [ ${builds_on} == 'windows-2022' ]; then
@@ -94,23 +108,20 @@ jobs:
                 config_file_os_path="${config_file_os_path//\//\\}"
               fi
               # █████████████████████ Get version and notes from file ██████████████████████
-              version_file="${project_dir}/${version_file}"
               version=""
-              version_notes=""
-              lines=$(wc -l < ${version_file})
-              if [ "$lines" -ge 0 ]; then
+              version_notes_file="${version_file}.notes.txt"
+              tail -n +2 "${version_file}" > "${version_notes_file}"
+              if [ "$(cat $all_version_notes_file)" != "" ]; then
+                printf "$(cat $all_version_notes_file)\\n\\n### $name\\n$(cat $version_notes_file)" > $all_version_notes_file.tmp && mv "$all_version_notes_file.tmp" "$all_version_notes_file"
+              else
+                printf "### $name\\n$(cat $version_notes_file)" > $all_version_notes_file.tmp && mv "$all_version_notes_file.tmp" "$all_version_notes_file"
+              fi
+              if [ "$(wc -l < ${version_file})" -ge 0 ]; then
                 version=$(head -n1 ${version_file})
                 version=${version//﻿}
                 version="${version#"${version%%[![:space:]]*}"}"
                 version="${version%"${version##*[![:space:]]}"}"
-                if [ "$lines" -ge 1 ]; then
-                  version_notes=$(tail -n +2 ${version_file})
-                  version_notes="${version_notes#"${version_notes%%[![:space:]]*}"}"
-                  version_notes="${version_notes%"${version_notes##*[![:space:]]}"}"
-                fi
               fi
-              echo "ver=${version}"
-              echo "notes=${version_notes}"
               # ███████████████████████ Validate version █████████████████████████
               if [ $(semver validate "${version}") != 'valid' ]; then
                 echo "::error file=${version_file},title=Version Control::Version file is not valid."
@@ -203,7 +214,6 @@ jobs:
                 --arg version_prerelease_number "$version_prerelease_number" \
                 --arg version_with_v "$version_with_v" \
                 --arg version_release_part_with_v "$version_release_part_with_v" \
-                --arg version_notes "$version_notes" \
                 --arg build "$build" \
                 --arg full_version "$full_version" \
                 --arg full_version_with_v "$full_version_with_v" \
@@ -224,7 +234,6 @@ jobs:
                   .version_prerelease_number=$version_prerelease_number |
                   .version_with_v=$version_with_v |
                   .version_release_part_with_v=$version_release_part_with_v |
-                  .version_notes=$version_notes |
                   .build=$build |
                   .full_version=$full_version |
                   .full_version_with_v=$full_version_with_v |
@@ -276,15 +285,18 @@ jobs:
                 web_server)
                   ;;
               esac
-            done <<< $(jq -r '.[] | "\(.config_file) \(.id) \(.type) \(.project_dir) \(.version_file) \(.platform_version_format) \(.release_tagging) \(.builds_on) \(.maui_platform)"' <<< "${PRESENTATION}")
+            done <<< $(jq -r -c '.[]' <<< "${PRESENTATION}")
           fi
           PRESENTATION_PUBLISH=$(jq 'del(.[] | select(.version_changed == "false"))' <<< "${PRESENTATION}")
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ██████████████████████████████████ Polyfill unit test values ██████████████████████████████████
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           if [ ${has_test} == 'true' ]; then
-            while read -r config_file id project_dir builds_on; do
+            while read -r item; do
               # ████████████████████████ Resolve paths ███████████████████████████
+              config_file=$(jq -r '.config_file' <<< "$item")
+              project_dir=$(jq -r '.project_dir' <<< "$item")
+              builds_on=$(jq -r '.builds_on' <<< "$item")
               project_name="${project_dir##**/}.csproj"
               project="${project_dir}/${project_name}"
               project_os_path="${project}"
@@ -306,7 +318,7 @@ jobs:
                   .project_os_path=$project_os_path |
                   .config_file_os_path=$config_file_os_path)' \
                 <<< "${TEST}")
-            done <<< $(jq -r '.[] | "\(.config_file) \(.id) \(.project_dir) \(.builds_on)"' <<< "${TEST}")
+            done <<< $(jq -r -c '.[]' <<< "${TEST}")
           fi
           # ███████████████████████████████████████████████████████████████████████████████████████████████
           # ████████████████████████████████████████ Print output █████████████████████████████████████████
@@ -350,6 +362,15 @@ jobs:
           echo "is_first_build=${is_first_build}" >> $GITHUB_OUTPUT
           echo "last_build=${last_build}" >> $GITHUB_OUTPUT
           echo "has_release=${has_release}" >> $GITHUB_OUTPUT
+
+      - name: Upload notes
+        uses: actions/upload-artifact@v3
+        with:
+          name: version_notes
+          path: ${{ github.workspace }}/version_notes.txt
+          if-no-files-found: error
+          retention-days: 1
+
     outputs:
       presentation: ${{ steps.setup_matrix.outputs.presentation }}
       presentation_matrix: ${{ steps.setup_matrix.outputs.presentation_matrix }}
@@ -366,18 +387,21 @@ jobs:
   test:
     needs: [setup]
     if: ${{ needs.setup.outputs.has_test == 'true' || needs.setup.outputs.has_release == 'true' }}
-    strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.test_matrix) }}
     name: Test - ${{ matrix.name }}
     runs-on: ${{ matrix.builds_on }}
+    strategy:
+      matrix: ${{ fromJson(needs.setup.outputs.test_matrix) }}
     steps:
+
       - uses: actions/checkout@v3
         if: ${{ matrix.placeholder != 'true' }}
+
       - name: Setup .NET SDK ${{ env.DOTNET_VERSION }}
         if: ${{ matrix.placeholder != 'true' }}
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
       - name: Build - ${{ matrix.name }}
         if: ${{ matrix.placeholder != 'true' }}
         run: |
@@ -396,11 +420,14 @@ jobs:
     name: Build - ${{ matrix.name }}
     runs-on: ${{ matrix.builds_on }}
     steps:
+
       - uses: actions/checkout@v3
+
       - name: Setup .NET SDK ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
       - name: Setup ${{ matrix.name }} dependents
         shell: bash
         run: |
@@ -464,9 +491,11 @@ jobs:
               dotnet restore '${{ matrix.project_os_path }}'
               ;;
           esac
+
       - name: Build ${{ matrix.name }}
         shell: bash
         run: |
+          tail -n +2 "${{ matrix.version_file_os_path }}" > "${{ matrix.version_file_os_path }}.notes.txt"
           case "${{ matrix.type }}" in
             # ███████████████████████████████████████████████████████████████████████████████████████████████
             # ██████████████████████████████████████████ Maui type ██████████████████████████████████████████
@@ -534,9 +563,10 @@ jobs:
               dotnet pack '${{ matrix.project_os_path }}' -o output --no-restore --no-build --configuration Release --include-symbols \
                 -p SymbolPackageFormat=snupkg \
                 -p PackageVersion=${{ matrix.platform_version }} \
-                -p PackageReleaseNotes="${{ matrix.version_notes }}"
+                -p PackageReleaseNotes="$(cat ${{ matrix.version_file_os_path }}.notes.txt)"
               ;;
           esac
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -551,19 +581,26 @@ jobs:
     name: Release Builds
     runs-on: ubuntu-22.04
     steps:
+
       - uses: actions/checkout@v3
+
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           path: output
+
       - name: Zip artifacts
         working-directory: output
         run: |
           for folder_name in *; do
+            if [ "$folder_name" == "version_notes" ]; then
+                continue
+            fi
             if [ -d "$folder_name" ]; then
               zip -r -q "${folder_name}.zip" "${folder_name}"
             fi
           done
+
       - name: Tag release
         id: tag_release
         shell: bash
@@ -572,6 +609,7 @@ jobs:
           git tag -f latest
           git push -f --tags
           echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
       - name: Create release
         shell: bash
         run: |
@@ -581,7 +619,8 @@ jobs:
               ./output/*.zip \
               --title build.${{ needs.setup.outputs.build }} \
               --target ${{ steps.tag_release.outputs.branch }} \
-              --generate-notes
+              --generate-notes \
+              --draft
           else
             gh release create \
               build.${{ needs.setup.outputs.build }} \
@@ -589,7 +628,22 @@ jobs:
               --title build.${{ needs.setup.outputs.build }} \
               --target ${{ steps.tag_release.outputs.branch }} \
               --generate-notes \
-              --notes-start-tag build.${{ needs.setup.outputs.last_build }}
+              --notes-start-tag build.${{ needs.setup.outputs.last_build }} \
+              --draft
+          fi
+          version_notes_file=./output/version_notes/version_notes.txt
+          git_notes_file=${{ matrix.version_file_os_path }}.git-notes.txt
+          if [ "$(cat $version_notes_file)" != ""  ]; then
+            printf "## Summary\\n$(cat $version_notes_file)" > $git_notes_file
+            printf "$(cat $git_notes_file)\\n\\n$(gh release view build.${{ needs.setup.outputs.build }} --json body | jq -r .body)" > $git_notes_file.tmp && mv "$git_notes_file.tmp" "$git_notes_file"
+            gh release edit \
+              build.${{ needs.setup.outputs.build }} \
+              --draft=false \
+              --notes-file "$git_notes_file"
+          else
+            gh release edit \
+              build.${{ needs.setup.outputs.build }} \
+              --draft=false
           fi
           
   publish:
@@ -601,12 +655,15 @@ jobs:
     name: Publish Builds - ${{ matrix.name }}
     runs-on: ubuntu-22.04
     steps:
+
       - uses: actions/checkout@v3
+
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.id }}_${{ matrix.full_version_with_v }}
           path: ${{ matrix.id }}_${{ matrix.full_version_with_v }}
+
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       # ██████████████████████████████████████████ Android ████████████████████████████████████████████
       # ███████████████████████████████████████████████████████████████████████████████████████████████
@@ -619,12 +676,14 @@ jobs:
           releaseFiles: ${{ matrix.id }}_${{ matrix.full_version_with_v }}/${{ matrix.maui_package_name }}-Signed.aab
           track: ${{ matrix.maui_android_release_track }}
           status: completed
+
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       # ████████████████████████████████████████████ iOS ██████████████████████████████████████████████
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       - name: Publish ios
         if: ${{ (matrix.type == 'maui') && (matrix.maui_platform == 'ios') }}
         run: echo "Test"
+
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       # ████████████████████████████████████████ Web Static ███████████████████████████████████████████
       # ███████████████████████████████████████████████████████████████████████████████████████████████
@@ -637,21 +696,25 @@ jobs:
           projectId: ${{ secrets[matrix.web_static_firebase_project_id] }}
           entryPoint: ${{ matrix.id }}_${{ matrix.full_version_with_v }}
           channelId: live
+
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       # ████████████████████████████████████████ Web Server ███████████████████████████████████████████
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       - name: Publish web server
         if: ${{ matrix.type == 'web_server' }}
         #uses: google-github-actions/deploy-appengine@v1
-        run: echo "Test"
+        run: |
+          echo "Test"
+
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       # █████████████████████████████████████ NuGet and GitHub ████████████████████████████████████████
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       - name: Push package to NuGet and GitHub
         if: ${{ matrix.type == 'nuget' }}
         run: |
-            dotnet nuget push ${{ matrix.id }}_${{ matrix.full_version_with_v }}/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s "${{ matrix.nuget_github_source_url }}"
-            dotnet nuget push ${{ matrix.id }}_${{ matrix.full_version_with_v }}/*.nupkg -k ${{ secrets[matrix.nuget_auth_token] }} -s "https://api.nuget.org/v3/index.json"
+          dotnet nuget push ${{ matrix.id }}_${{ matrix.full_version_with_v }}/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s "${{ matrix.nuget_github_source_url }}"
+          dotnet nuget push ${{ matrix.id }}_${{ matrix.full_version_with_v }}/*.nupkg -k ${{ secrets[matrix.nuget_auth_token] }} -s "https://api.nuget.org/v3/index.json"
+
       # ███████████████████████████████████████████████████████████████████████████████████████████████
       # ████████████████████████████████████████ Tag Release ██████████████████████████████████████████
       # ███████████████████████████████████████████████████████████████████████████████████████████████
@@ -674,6 +737,7 @@ jobs:
     name: Cleanup
     runs-on: ubuntu-22.04
     steps:
+    
       - name: Delete artifacts
         uses: geekyeggo/delete-artifact@v2
         with:
