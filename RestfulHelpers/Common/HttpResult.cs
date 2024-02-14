@@ -18,9 +18,9 @@ using TransactionHelpers.Interface;
 namespace RestfulHelpers.Common;
 
 /// <summary>
-/// The base response for all HTTP requests.
+/// The base result for all HTTP requests.
 /// </summary>
-public class HttpResponse : Response, IHttpResponse
+public class HttpResult : Result, IHttpResult
 {
     private HttpStatusCode statusCode;
 
@@ -49,15 +49,15 @@ public class HttpResponse : Response, IHttpResponse
     }
 
     /// <summary>
-    /// Appends <see cref="IHttpResponse"/> responses to the response.
+    /// Appends <see cref="IHttpResult"/> results to the result.
     /// </summary>
-    public IHttpResponse? AppendHttpResponse
+    public IHttpResult? AppendHttpResult
     {
         init
         {
             if (value != null)
             {
-                base.AppendResponse = value;
+                base.AppendResult = value;
                 HttpError = value.HttpError;
                 StatusCode = value.StatusCode;
             }
@@ -65,18 +65,18 @@ public class HttpResponse : Response, IHttpResponse
     }
 
     /// <summary>
-    /// Appends <see cref="IHttpResponse"/> responses to the response.
+    /// Appends <see cref="IHttpResult"/> results to the result.
     /// </summary>
-    public IHttpResponse?[]? AppendHttpResponses
+    public IHttpResult?[]? AppendHttpResults
     {
         init
         {
             if (value != null)
             {
-                base.AppendResponses = value;
-                foreach (var response in value)
+                base.AppendResults = value;
+                foreach (var result in value)
                 {
-                    AppendHttpResponse = response;
+                    AppendHttpResult = result;
                 }
             }
         }
@@ -84,10 +84,10 @@ public class HttpResponse : Response, IHttpResponse
 }
 
 /// <summary>
-/// The base response for all HTTP requests.
+/// The base result for all HTTP requests.
 /// </summary>
 /// <inheritdoc/>
-public class HttpResponse<TResult> : Response<TResult>, IHttpResponse
+public class HttpResult<TResult> : Result<TResult>, IHttpResult
 {
     private HttpStatusCode statusCode;
 
@@ -116,15 +116,15 @@ public class HttpResponse<TResult> : Response<TResult>, IHttpResponse
     }
 
     /// <summary>
-    /// Appends <see cref="IHttpResponse"/> responses to the response.
+    /// Appends <see cref="IHttpResult"/> results to the result.
     /// </summary>
-    public IHttpResponse? AppendHttpResponse
+    public IHttpResult? AppendHttpResult
     {
         init
         {
             if (value != null)
             {
-                base.AppendResponse = value;
+                base.AppendResult = value;
                 HttpError = value.HttpError;
                 StatusCode = value.StatusCode;
             }
@@ -132,18 +132,18 @@ public class HttpResponse<TResult> : Response<TResult>, IHttpResponse
     }
 
     /// <summary>
-    /// Appends <see cref="IHttpResponse"/> responses to the response.
+    /// Appends <see cref="IHttpResult"/> results to the result.
     /// </summary>
-    public IHttpResponse?[]? AppendHttpResponses
+    public IHttpResult?[]? AppendHttpResults
     {
         init
         {
             if (value != null)
             {
-                base.AppendResponses = value;
-                foreach (var response in value)
+                base.AppendResults = value;
+                foreach (var result in value)
                 {
-                    AppendHttpResponse = response;
+                    AppendHttpResult = result;
                 }
             }
         }

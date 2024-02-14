@@ -11,7 +11,7 @@ namespace RestfulHelpers.Interface;
 /// <summary>
 /// The interface for all HTTP responses.
 /// </summary>
-public interface IHttpResponse : IResponse
+public interface IHttpResult : IResult
 {
     /// <summary>
     /// Gets the http error of the response.
