@@ -22,7 +22,7 @@ namespace RestfulHelpers.Common;
 /// </summary>
 public class HttpResult : Result, IHttpResult
 {
-    internal HttpStatusCode InternalStatusCode;
+    internal HttpStatusCode InternalStatusCode = default;
 
     /// <inheritdoc/>
     public HttpError? HttpError => Error as HttpError;
@@ -37,7 +37,7 @@ public class HttpResult : Result, IHttpResult
 /// <inheritdoc/>
 public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 {
-    internal HttpStatusCode InternalStatusCode;
+    internal HttpStatusCode InternalStatusCode = default;
 
     /// <inheritdoc/>
     public HttpError? HttpError => Error as HttpError;

@@ -460,4 +460,110 @@ public static class HttpClientExtension
     {
         return ExecuteWithContent<T>(httpClient, content, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
     }
+
+    /// <summary>
+    /// Executes an HTTP request with a provided <typeparamref name="TContent"/> as the content and returns the result as an <see cref="HttpResult"/> object.
+    /// </summary>
+    /// <typeparam name="TContent">The type of content to serialize.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="content">The string representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="jsonSerializerOptions">A <see cref="JsonSerializerOptions"/> that can be used to serialize <paramref name="content"/>.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+    public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
+    {
+        HttpRequestMessage request = new(httpMethod, uri)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(content, jsonSerializerOptions), Encoding.UTF8, "Application/json")
+        };
+
+        return Execute(httpClient, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes an HTTP request with a provided string as the content and returns the result as an <see cref="HttpResult"/> object.
+    /// </summary>
+    /// <typeparam name="TContent">The type of content to serialize.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="content">The string representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="jsonSerializerOptions">A <see cref="JsonSerializerOptions"/> that can be used to serialize <paramref name="content"/>.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+    public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
+    {
+        return ExecuteWithContent(httpClient, JsonSerializer.Serialize(content, jsonSerializerOptions), httpMethod, new Uri(uri), cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes an HTTP request with a provided <typeparamref name="TContent"/> as the content and returns the result as a deserialized object of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of object to deserialize the result into.</typeparam>
+    /// <typeparam name="TContent">The type of content to serialize.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="content">The string representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResult{T}"/> object representing the result to the request and the deserialized object.</returns>
+    /// <exception cref="JsonException">
+    /// The JSON is invalid.
+    ///
+    /// -or-
+    ///
+    /// <typeparamref name="T" /> is not compatible with the JSON.
+    ///
+    /// -or-
+    ///
+    /// There is remaining data in the string beyond a single JSON value.</exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
+    /// for <typeparamref name="T"/> or its serializable members.
+    /// </exception>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public static Task<HttpResult<T>> ExecuteWithContent<T, TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
+    {
+        HttpRequestMessage request = new(httpMethod, uri)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(content, jsonSerializerOptions), Encoding.UTF8, "Application/json")
+        };
+
+        return Execute<T>(httpClient, request, jsonSerializerOptions, cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes an HTTP request with a provided <typeparamref name="TContent"/> as the content and returns the result as a deserialized object of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of object to deserialize the result into.</typeparam>
+    /// <typeparam name="TContent">The type of content to serialize.</typeparam>
+    /// <param name="httpClient">The <see cref="HttpClient"/> to use for the request.</param>
+    /// <param name="content">The string representing the content of the request.</param>
+    /// <param name="httpMethod">The <see cref="HttpMethod"/> representing the request.</param>
+    /// <param name="uri">The URI of the request.</param>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+    /// <returns>An <see cref="HttpResult{T}"/> object representing the result to the request and the deserialized object.</returns>
+    /// <exception cref="JsonException">
+    /// The JSON is invalid.
+    ///
+    /// -or-
+    ///
+    /// <typeparamref name="T" /> is not compatible with the JSON.
+    ///
+    /// -or-
+    ///
+    /// There is remaining data in the string beyond a single JSON value.</exception>
+    /// <exception cref="NotSupportedException">
+    /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
+    /// for <typeparamref name="T"/> or its serializable members.
+    /// </exception>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public static Task<HttpResult<T>> ExecuteWithContent<T, TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
+    {
+        return ExecuteWithContent<T, TContent>(httpClient, content, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+    }
 }

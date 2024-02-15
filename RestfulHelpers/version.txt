@@ -1,2 +1,2 @@
-1.0.1
-* Fixed fluent logic
+1.0.2
+* Added json serializer to http extensions
