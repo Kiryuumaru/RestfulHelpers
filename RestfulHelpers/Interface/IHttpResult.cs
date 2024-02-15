@@ -23,3 +23,10 @@ public interface IHttpResult : IResult
     /// </summary>
     HttpStatusCode StatusCode { get; }
 }
+
+/// <summary>
+/// The interface for all HTTP responses.
+/// </summary>
+public interface IHttpResult<TValue> : IHttpResult, IResult<TValue>
+{
+}
