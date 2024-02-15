@@ -1,2 +1,2 @@
-1.0.2
-* Added json serializer to http extensions
+1.0.3
+* Updated dependencies
