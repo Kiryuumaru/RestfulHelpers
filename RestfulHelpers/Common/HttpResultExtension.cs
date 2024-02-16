@@ -36,13 +36,9 @@ public static class HttpResultExtension
         {
             foreach (var statusCode in statusCodes)
             {
-                if (httpResult is HttpResult typedHttpResult1)
+                if (httpResult.GetType().GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
                 {
-                    typedHttpResult1.InternalStatusCode = statusCode;
-                }
-                else if (httpResult is HttpResult typedHttpResult2)
-                {
-                    typedHttpResult2.InternalStatusCode = statusCode;
+                    resultStatCodeFieldInfo.SetValue(httpResult, statusCode);
                 }
 
                 if ((int)statusCode < 200 || (int)statusCode > 299)
