@@ -70,7 +70,7 @@ public static class HttpResultExtension
             {
                 if (r != null)
                 {
-                    httpResult.WithError(r.Errors.ToArray());
+                    httpResult.WithResult(r);
                     if (httpResult.GetType().GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
                     {
                         resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
