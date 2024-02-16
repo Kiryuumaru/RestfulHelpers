@@ -472,6 +472,7 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">A <see cref="JsonSerializerOptions"/> that can be used to serialize <paramref name="content"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
         HttpRequestMessage request = new(httpMethod, uri)
@@ -493,6 +494,7 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">A <see cref="JsonSerializerOptions"/> that can be used to serialize <paramref name="content"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
         return ExecuteWithContent(httpClient, JsonSerializer.Serialize(content, jsonSerializerOptions), httpMethod, new Uri(uri), cancellationToken);
