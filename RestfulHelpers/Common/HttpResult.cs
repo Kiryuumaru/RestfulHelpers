@@ -29,6 +29,83 @@ public class HttpResult : Result, IHttpResult
 
     /// <inheritdoc/>
     public HttpStatusCode StatusCode => InternalStatusCode;
+
+    /// <summary>
+    /// Implicit operator for <see cref="Error"/> conversion.
+    /// </summary>
+    /// <param name="error">
+    /// The <see cref="Error"/> to return.
+    /// </param>
+    public static implicit operator HttpResult(Error? error)
+    {
+        return new HttpResult().WithError(error);
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="Exception"/> conversion.
+    /// </summary>
+    /// <param name="exception">
+    /// The <see cref="Exception"/> to return.
+    /// </param>
+    public static implicit operator HttpResult(Exception? exception)
+    {
+        return new HttpResult().WithError(exception);
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpStatusCode"/> conversion.
+    /// </summary>
+    /// <param name="httpStatusCode">
+    /// The <see cref="HttpStatusCode"/> to return.
+    /// </param>
+    public static implicit operator HttpResult(HttpStatusCode httpStatusCode)
+    {
+        return new HttpResult().WithStatusCode(httpStatusCode);
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult"/> to <see cref="Error"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result"/> to convert.
+    /// </param>
+    public static implicit operator Error?(HttpResult result)
+    {
+        return result.Error;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult"/> to <see cref="Exception"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result{TValue}"/> to convert.
+    /// </param>
+    public static implicit operator Exception?(HttpResult result)
+    {
+        return result.Error?.Exception;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult"/> to <see cref="Common.HttpError"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result"/> to convert.
+    /// </param>
+    public static implicit operator HttpError?(HttpResult result)
+    {
+        return result.HttpError;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult"/> to <see cref="HttpStatusCode"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result"/> to convert.
+    /// </param>
+    public static implicit operator HttpStatusCode?(HttpResult result)
+    {
+        return result.StatusCode;
+    }
 }
 
 /// <summary>
@@ -44,4 +121,103 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 
     /// <inheritdoc/>
     public HttpStatusCode StatusCode => InternalStatusCode;
+
+    /// <summary>
+    /// Implicit operator for <see cref="Error"/> conversion.
+    /// </summary>
+    /// <param name="error">
+    /// The <see cref="Error"/> to return.
+    /// </param>
+    public static implicit operator HttpResult<TValue>(Error? error)
+    {
+        return new HttpResult<TValue>().WithError(error);
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="Exception"/> conversion.
+    /// </summary>
+    /// <param name="exception">
+    /// The <see cref="Exception"/> to return.
+    /// </param>
+    public static implicit operator HttpResult<TValue>(Exception? exception)
+    {
+        return new HttpResult<TValue>().WithError(exception);
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpStatusCode"/> conversion.
+    /// </summary>
+    /// <param name="httpStatusCode">
+    /// The <see cref="HttpStatusCode"/> to return.
+    /// </param>
+    public static implicit operator HttpResult<TValue>(HttpStatusCode httpStatusCode)
+    {
+        return new HttpResult<TValue>().WithStatusCode(httpStatusCode);
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult{TValue}"/> to <see cref="Error"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result"/> to convert.
+    /// </param>
+    public static implicit operator Error?(HttpResult<TValue> result)
+    {
+        return result.Error;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult{TValue}"/> to <see cref="Exception"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result{TValue}"/> to convert.
+    /// </param>
+    public static implicit operator Exception?(HttpResult<TValue> result)
+    {
+        return result.Error?.Exception;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult{TValue}"/> to <see cref="Common.HttpError"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result"/> to convert.
+    /// </param>
+    public static implicit operator HttpResult<TValue>?(HttpResult result)
+    {
+        return result.HttpError;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult{TValue}"/> to <see cref="HttpStatusCode"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result"/> to convert.
+    /// </param>
+    public static implicit operator HttpStatusCode?(HttpResult<TValue> result)
+    {
+        return result.StatusCode;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="Error"/> conversion.
+    /// </summary>
+    /// <param name="value">
+    /// The <typeparamref name="TValue"/> to return.
+    /// </param>
+    public static implicit operator HttpResult<TValue>(TValue? value)
+    {
+        return new HttpResult<TValue>().WithValue(value);
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult{TValue}"/> to <typeparamref name="TValue"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result{TValue}"/> to convert.
+    /// </param>
+    public static implicit operator TValue?(HttpResult<TValue> result)
+    {
+        return result.Value;
+    }
 }
