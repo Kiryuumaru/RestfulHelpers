@@ -130,7 +130,17 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
     public HttpError? HttpError => Error as HttpError;
 
     /// <inheritdoc/>
-    public HttpStatusCode StatusCode => InternalStatusCode;
+    public HttpStatusCode StatusCode
+    {
+        get
+        {
+            if (HttpError is HttpError httpError)
+            {
+                return httpError.StatusCode;
+            }
+            return InternalStatusCode;
+        }
+    }
 
     /// <summary>
     /// Implicit operator for <see cref="Error"/> conversion.
