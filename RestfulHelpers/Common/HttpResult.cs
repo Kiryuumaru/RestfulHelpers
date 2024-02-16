@@ -25,6 +25,7 @@ public class HttpResult : Result, IHttpResult
     internal HttpStatusCode InternalStatusCode = default;
 
     /// <inheritdoc/>
+    [JsonIgnore]
     public HttpError? HttpError => Error as HttpError;
 
     /// <inheritdoc/>
@@ -127,6 +128,7 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
     internal HttpStatusCode InternalStatusCode = default;
 
     /// <inheritdoc/>
+    [JsonIgnore]
     public HttpError? HttpError => Error as HttpError;
 
     /// <inheritdoc/>

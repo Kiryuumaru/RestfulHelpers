@@ -5,6 +5,7 @@ using RestfulHelpers.Common;
 using TransactionHelpers.Interface;
 using TransactionHelpers;
 using System.Net;
+using System.Text.Json.Serialization;
 
 namespace RestfulHelpers.Interface;
 
@@ -16,6 +17,7 @@ public interface IHttpResult : IResult
     /// <summary>
     /// Gets the http error of the response.
     /// </summary>
+    [JsonIgnore]
     HttpError? HttpError { get; }
 
     /// <summary>
