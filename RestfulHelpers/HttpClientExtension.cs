@@ -109,59 +109,47 @@ public static class HttpClientExtension
 #endif
             var doc = JsonSerializer.Deserialize<JsonDocument>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-            if (doc == null)
+            try
             {
-                result.WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"));
-                return result;
+                if (doc == null)
+                {
+                    throw new Exception();
+                }
+                else if (doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.EnumerateObject().All(i =>
+                    i.Name.Equals("statuscode", StringComparison.OrdinalIgnoreCase) ||
+                    i.Name.Equals("value", StringComparison.OrdinalIgnoreCase) ||
+                    i.Name.Equals("hasvalue", StringComparison.OrdinalIgnoreCase) ||
+                    i.Name.Equals("errors", StringComparison.OrdinalIgnoreCase) ||
+                    i.Name.Equals("issuccess", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var wrapper = JsonSerializer.Deserialize<HttpResult<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? throw new Exception();
+                    result
+                        .WithHttpResult(wrapper)
+                        .WithStatusCode(statusCode);
+                }
+                else if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                    doc.RootElement.EnumerateObject().All(i =>
+                        i.Name.Equals("value", StringComparison.OrdinalIgnoreCase) ||
+                        i.Name.Equals("hasvalue", StringComparison.OrdinalIgnoreCase) ||
+                        i.Name.Equals("errors", StringComparison.OrdinalIgnoreCase) ||
+                        i.Name.Equals("issuccess", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var wrapper = JsonSerializer.Deserialize<Result<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? throw new Exception();
+                    result
+                        .WithResult(wrapper)
+                        .WithStatusCode(statusCode);
+                }
+                else
+                {
+                    result
+                        .WithValue(doc.Deserialize<T>(jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+                        .WithStatusCode(statusCode);
+                }
             }
-
-            while (true)
+            catch
             {
-                try
-                {
-                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-                        doc.RootElement.EnumerateObject().All(i =>
-                            i.Name.Equals("statuscode", StringComparison.OrdinalIgnoreCase) ||
-                            i.Name.Equals("value", StringComparison.OrdinalIgnoreCase) ||
-                            i.Name.Equals("hasvalue", StringComparison.OrdinalIgnoreCase) ||
-                            i.Name.Equals("errors", StringComparison.OrdinalIgnoreCase) ||
-                            i.Name.Equals("issuccess", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        var wrapper = JsonSerializer.Deserialize<HttpResult<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                        if (wrapper != null)
-                        {
-                            result
-                                .WithHttpResult(wrapper)
-                                .WithStatusCode(statusCode);
-                            break;
-                        }
-                    }
-                }
-                catch { }
-
-                try
-                {
-                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-                        doc.RootElement.EnumerateObject().All(i =>
-                            i.Name.Equals("value", StringComparison.OrdinalIgnoreCase) ||
-                            i.Name.Equals("hasvalue", StringComparison.OrdinalIgnoreCase) ||
-                            i.Name.Equals("errors", StringComparison.OrdinalIgnoreCase) ||
-                            i.Name.Equals("issuccess", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        var wrapper = JsonSerializer.Deserialize<Result<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                        if (wrapper != null)
-                        {
-                            result
-                                .WithResult(wrapper)
-                                .WithStatusCode(statusCode);
-                            break;
-                        }
-                    }
-                }
-                catch { }
-                
                 result
-                    .WithValue(doc.Deserialize<T>(jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+                    .WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"))
                     .WithStatusCode(statusCode);
             }
         }

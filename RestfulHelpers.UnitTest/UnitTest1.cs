@@ -13,9 +13,30 @@ namespace RestfulHelpers.UnitTest
             WriteIndented = true
         };
 
+        public class TelemetryEntity
+        {
+            public required string Id { get; set; }
+
+            public required DateTimeOffset DateTime { get; set; }
+
+            public List<string> Tags { get; set; } = [];
+
+            public required JsonDocument Data { get; set; }
+        }
+
+
         [Fact]
         public async void Test1()
         {
+            var apiEndpoint = "awdawd";
+
+            var query = HttpUtility.ParseQueryString(string.Empty);
+
+            query.Add("seconds", "989999");
+
+            var ss = await new HttpClient().Execute<IEnumerable<TelemetryEntity>>(HttpMethod.Get, apiEndpoint + "?" + query.ToString(), CamelCaseOption);
+
+            var asdas = 1;
         }
     }
 }
