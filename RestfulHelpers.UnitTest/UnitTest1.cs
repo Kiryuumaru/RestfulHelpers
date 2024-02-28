@@ -28,7 +28,7 @@ namespace RestfulHelpers.UnitTest
         [Fact]
         public async void Test1()
         {
-            var apiEndpoint = "awdawd";
+            var apiEndpoint = "https://test.com";
 
             var query = HttpUtility.ParseQueryString(string.Empty);
 
