@@ -11,6 +11,7 @@ using RestfulHelpers.Common;
 using TransactionHelpers;
 
 using static RestfulHelpers.Common.Internals.Message;
+using TransactionHelpers.Interface;
 
 namespace RestfulHelpers;
 
@@ -105,10 +106,38 @@ public static class HttpClientExtension
 #else
             var httpResultMessageData = await httpResultMessage.Content.ReadAsStringAsync(cancellationToken);
 #endif
+            while (true)
+            {
+                try
+                {
+                    var wrapper = JsonSerializer.Deserialize<HttpResult<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                    if (wrapper != null)
+                    {
+                        result
+                            .WithHttpResult(wrapper)
+                            .WithStatusCode(statusCode);
+                        break;
+                    }
+                }
+                catch { }
 
-            result
-                .WithValue(JsonSerializer.Deserialize<T>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)))
-                .WithStatusCode(statusCode);
+                try
+                {
+                    var wrapper = JsonSerializer.Deserialize<Result<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                    if (wrapper != null)
+                    {
+                        result
+                            .WithResult(wrapper)
+                            .WithStatusCode(statusCode);
+                        break;
+                    }
+                }
+                catch { }
+
+                result
+                    .WithValue(JsonSerializer.Deserialize<T>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+                    .WithStatusCode(statusCode);
+            }
         }
         catch (Exception ex)
         {
