@@ -36,7 +36,7 @@ namespace RestfulHelpers.UnitTest
 
             var ss = await new HttpClient().Execute<IEnumerable<TelemetryEntity>>(HttpMethod.Get, apiEndpoint + "?" + query.ToString(), CamelCaseOption);
 
-            var asdas = 1;
+            Assert.NotNull(ss);
         }
     }
 }
