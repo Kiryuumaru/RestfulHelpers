@@ -12,6 +12,7 @@ using TransactionHelpers;
 
 using static RestfulHelpers.Common.Internals.Message;
 using TransactionHelpers.Interface;
+using System.Linq;
 
 namespace RestfulHelpers;
 
@@ -106,36 +107,61 @@ public static class HttpClientExtension
 #else
             var httpResultMessageData = await httpResultMessage.Content.ReadAsStringAsync(cancellationToken);
 #endif
+            var doc = JsonSerializer.Deserialize<JsonDocument>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+            if (doc == null)
+            {
+                result.WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"));
+                return result;
+            }
+
             while (true)
             {
                 try
                 {
-                    var wrapper = JsonSerializer.Deserialize<HttpResult<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                    if (wrapper != null)
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.EnumerateObject().All(i =>
+                            i.Name.Equals("statuscode", StringComparison.OrdinalIgnoreCase) ||
+                            i.Name.Equals("value", StringComparison.OrdinalIgnoreCase) ||
+                            i.Name.Equals("hasvalue", StringComparison.OrdinalIgnoreCase) ||
+                            i.Name.Equals("errors", StringComparison.OrdinalIgnoreCase) ||
+                            i.Name.Equals("issuccess", StringComparison.OrdinalIgnoreCase)))
                     {
-                        result
-                            .WithHttpResult(wrapper)
-                            .WithStatusCode(statusCode);
-                        break;
+                        var wrapper = JsonSerializer.Deserialize<HttpResult<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                        if (wrapper != null)
+                        {
+                            result
+                                .WithHttpResult(wrapper)
+                                .WithStatusCode(statusCode);
+                            break;
+                        }
                     }
                 }
                 catch { }
 
                 try
                 {
-                    var wrapper = JsonSerializer.Deserialize<Result<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                    if (wrapper != null)
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.EnumerateObject().All(i =>
+                            i.Name.Equals("value", StringComparison.OrdinalIgnoreCase) ||
+                            i.Name.Equals("hasvalue", StringComparison.OrdinalIgnoreCase) ||
+                            i.Name.Equals("errors", StringComparison.OrdinalIgnoreCase) ||
+                            i.Name.Equals("issuccess", StringComparison.OrdinalIgnoreCase)))
                     {
-                        result
-                            .WithResult(wrapper)
-                            .WithStatusCode(statusCode);
-                        break;
+                        var wrapper = JsonSerializer.Deserialize<Result<T>>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                        if (wrapper != null)
+                        {
+                            result
+                                .WithResult(wrapper)
+                                .WithStatusCode(statusCode);
+                            break;
+                        }
                     }
                 }
                 catch { }
-
+                
                 result
-                    .WithValue(JsonSerializer.Deserialize<T>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+                    .WithValue(doc.Deserialize<T>(jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)))
                     .WithStatusCode(statusCode);
             }
         }

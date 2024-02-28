@@ -142,6 +142,10 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
             }
             return InternalStatusCode;
         }
+        init
+        {
+            InternalStatusCode = value;
+        }
     }
 
     /// <summary>
