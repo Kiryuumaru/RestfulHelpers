@@ -43,6 +43,38 @@ public class HttpResult : Result, IHttpResult
     public override bool AppendIsError<TAppend>(TAppend resultAppend) => base.AppendIsError(resultAppend);
 
     /// <inheritdoc/>
+    [MemberNotNullWhen(true, nameof(Error))]
+    public override bool AppendIsErrorOrHasNoValue<TAppend, TAppendValue>(TAppend resultAppend)
+    {
+        if (resultAppend is IHttpResult httpResult)
+        {
+            this.WithHttpResult(httpResult);
+        }
+        else
+        {
+            this.WithResult(resultAppend);
+        }
+        return resultAppend.IsError || resultAppend.HasNoValue;
+    }
+
+    /// <inheritdoc/>
+    [MemberNotNullWhen(true, nameof(Error))]
+    public override bool AppendIsErrorOrHasNoValue<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(false)] out TAppendValue? value)
+        where TAppendValue : default
+    {
+        if (resultAppend is IHttpResult httpResult)
+        {
+            this.WithHttpResult(httpResult);
+        }
+        else
+        {
+            this.WithResult(resultAppend);
+        }
+        value = resultAppend.Value;
+        return resultAppend.IsError || resultAppend.HasNoValue;
+    }
+
+    /// <inheritdoc/>
     [JsonIgnore]
     public HttpError? HttpError => Error as HttpError;
 
@@ -144,55 +176,6 @@ public class HttpResult : Result, IHttpResult
 public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 {
     internal HttpStatusCode InternalStatusCode = default;
-
-    /// <inheritdoc/>
-    [JsonIgnore]
-    public override Error? Error => base.Error;
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(false, nameof(Error))]
-    public override bool IsSuccess => base.IsSuccess;
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    [JsonIgnore]
-    public override bool IsError => base.IsError;
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    public override bool AppendIsError<TAppend>(TAppend resultAppend) => base.AppendIsError(resultAppend);
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    public override bool AppendIsErrorOrHasNoValue<TAppend, TAppendValue>(TAppend resultAppend)
-    {
-        if (resultAppend is IHttpResult httpResult)
-        {
-            this.WithHttpResult(httpResult);
-        }
-        else
-        {
-            this.WithResult(resultAppend);
-        }
-        return resultAppend.IsError || resultAppend.HasNoValue;
-    }
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    public override bool AppendIsErrorOrHasNoValue<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(false)] out TAppendValue? value)
-        where TAppendValue : default
-    {
-        if (resultAppend is IHttpResult httpResult)
-        {
-            this.WithHttpResult(httpResult);
-        }
-        else
-        {
-            this.WithResult(resultAppend);
-        }
-        value = resultAppend.Value;
-        return resultAppend.IsError || resultAppend.HasNoValue;
-    }
 
     /// <inheritdoc/>
     [JsonIgnore]
