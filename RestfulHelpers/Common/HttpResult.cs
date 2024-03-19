@@ -39,12 +39,8 @@ public class HttpResult : Result, IHttpResult
     public override bool IsError => base.IsError;
 
     /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    public override bool AppendIsError<TAppend>(TAppend resultAppend) => base.AppendIsError(resultAppend);
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    public override bool AppendIsErrorOrHasNoValue<TAppend, TAppendValue>(TAppend resultAppend)
+    [MemberNotNullWhen(false, nameof(Error))]
+    public override bool Append<TAppend>(TAppend resultAppend)
     {
         if (resultAppend is IHttpResult httpResult)
         {
@@ -54,12 +50,18 @@ public class HttpResult : Result, IHttpResult
         {
             this.WithResult(resultAppend);
         }
-        return resultAppend.IsError || resultAppend.HasNoValue;
+        if (resultAppend.GetType().GetProperty(nameof(IResult<object>.HasNoValue), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo hasNoValuePropertyInfo &&
+            hasNoValuePropertyInfo.GetValue(resultAppend) is bool hasNoValue)
+        {
+            return !resultAppend.IsError && !hasNoValue;
+        }
+
+        return !resultAppend.IsError;
     }
 
     /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    public override bool AppendIsErrorOrHasNoValue<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(false)] out TAppendValue? value)
+    [MemberNotNullWhen(false, nameof(Error))]
+    public override bool Append<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
         where TAppendValue : default
     {
         if (resultAppend is IHttpResult httpResult)
@@ -71,7 +73,7 @@ public class HttpResult : Result, IHttpResult
             this.WithResult(resultAppend);
         }
         value = resultAppend.Value;
-        return resultAppend.IsError || resultAppend.HasNoValue;
+        return !resultAppend.IsError && !resultAppend.HasNoValue;
     }
 
     /// <inheritdoc/>
