@@ -40,7 +40,39 @@ public class HttpResult : Result, IHttpResult
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Append<TAppend>(TAppend resultAppend)
+    public override bool Success<TAppend>(TAppend resultAppend)
+    {
+        if (resultAppend is IHttpResult httpResult)
+        {
+            this.WithHttpResult(httpResult);
+        }
+        else
+        {
+            this.WithResult(resultAppend);
+        }
+        return !resultAppend.IsError;
+    }
+
+    /// <inheritdoc/>
+    [MemberNotNullWhen(false, nameof(Error))]
+    public override bool Success<TAppend, TAppendValue>(TAppend resultAppend, out TAppendValue? value)
+        where TAppendValue : default
+    {
+        if (resultAppend is IHttpResult httpResult)
+        {
+            this.WithHttpResult(httpResult);
+        }
+        else
+        {
+            this.WithResult(resultAppend);
+        }
+        value = resultAppend.Value;
+        return !resultAppend.IsError;
+    }
+
+    /// <inheritdoc/>
+    [MemberNotNullWhen(false, nameof(Error))]
+    public override bool SuccessAndHasValue<TAppend>(TAppend resultAppend)
     {
         if (resultAppend is IHttpResult httpResult)
         {
@@ -55,13 +87,12 @@ public class HttpResult : Result, IHttpResult
         {
             return !resultAppend.IsError && !hasNoValue;
         }
-
         return !resultAppend.IsError;
     }
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Append<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
+    public override bool SuccessAndHasValue<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
         where TAppendValue : default
     {
         if (resultAppend is IHttpResult httpResult)
