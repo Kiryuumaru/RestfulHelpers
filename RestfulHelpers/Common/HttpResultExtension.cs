@@ -59,6 +59,34 @@ public static class HttpResultExtension
     /// </summary>
     /// <typeparam name="T">Type of the HTTP result.</typeparam>
     /// <param name="httpResult">The HTTP result to modify.</param>
+    /// <param name="appendResultValues">Append values if the results has the same value type.</param>
+    /// <param name="httpResults">The HTTP results to set.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static T WithHttpResult<T>(this T httpResult, bool appendResultValues, params IHttpResult[] httpResults)
+        where T : IHttpResult
+    {
+        if (httpResults != null)
+        {
+            foreach (var r in httpResults)
+            {
+                if (r != null)
+                {
+                    httpResult.WithResult(appendResultValues, r);
+                    if (httpResult.GetType().GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
+                    {
+                        resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
+                    }
+                }
+            }
+        }
+        return httpResult;
+    }
+
+    /// <summary>
+    /// Sets the HTTP result and status code for the given <paramref name="httpResult"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <param name="httpResult">The HTTP result to modify.</param>
     /// <param name="httpResults">The HTTP results to set.</param>
     /// <returns>The modified HTTP result.</returns>
     public static T WithHttpResult<T>(this T httpResult, params IHttpResult[] httpResults)
