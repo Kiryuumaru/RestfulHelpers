@@ -6,13 +6,14 @@ using TransactionHelpers.Interface;
 using TransactionHelpers;
 using System.Net;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RestfulHelpers.Interface;
 
 /// <summary>
 /// The interface for all HTTP responses.
 /// </summary>
-public interface IHttpResult : IResult
+public interface IHttpResult : IResult, IActionResult
 {
     /// <summary>
     /// Gets the http error of the response.

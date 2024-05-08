@@ -25,7 +25,7 @@ namespace RestfulHelpers.Common;
 /// <summary>
 /// The base result for all HTTP requests.
 /// </summary>
-public class HttpResult : Result, IHttpResult, IActionResult
+public class HttpResult : Result, IHttpResult
 {
     internal HttpStatusCode InternalStatusCode = default;
 
@@ -129,7 +129,7 @@ public class HttpResult : Result, IHttpResult, IActionResult
     }
 
     /// <inheritdoc/>
-    Task IActionResult.ExecuteResultAsync(ActionContext context)
+    public Task ExecuteResultAsync(ActionContext context)
     {
         var actionResult = new ObjectResult(this)
         {
@@ -255,6 +255,17 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
         {
             InternalStatusCode = value;
         }
+    }
+
+    /// <inheritdoc/>
+    public Task ExecuteResultAsync(ActionContext context)
+    {
+        var actionResult = new ObjectResult(this)
+        {
+            DeclaredType = GetType(),
+            StatusCode = (int)StatusCode
+        };
+        return actionResult.ExecuteResultAsync(context);
     }
 
     /// <summary>
