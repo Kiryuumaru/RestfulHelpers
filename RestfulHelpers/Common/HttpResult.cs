@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Newtonsoft.Json.Linq;
 using RestfulHelpers;
 using RestfulHelpers.Common;
@@ -23,7 +24,7 @@ namespace RestfulHelpers.Common;
 /// <summary>
 /// The base result for all HTTP requests.
 /// </summary>
-public class HttpResult : Result, IHttpResult
+public class HttpResult : Result, IHttpResult, IConvertToActionResult
 {
     internal HttpStatusCode InternalStatusCode = default;
 
@@ -124,6 +125,16 @@ public class HttpResult : Result, IHttpResult
             }
             return InternalStatusCode;
         }
+    }
+
+    /// <inheritdoc/>
+    IActionResult IConvertToActionResult.Convert()
+    {
+        return new ObjectResult(this)
+        {
+            DeclaredType = GetType(),
+            StatusCode = (int)StatusCode
+        };
     }
 
     /// <summary>
