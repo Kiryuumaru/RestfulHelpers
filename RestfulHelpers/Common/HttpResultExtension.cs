@@ -47,7 +47,8 @@ public static class HttpResultExtension
                     httpResult.WithError(new HttpError()
                     {
                         Message = "StatusCode: " + statusCode,
-                        StatusCode = statusCode
+                        StatusCode = statusCode,
+                        ErrorCode = statusCode.ToString()
                     });
                 }
             }
