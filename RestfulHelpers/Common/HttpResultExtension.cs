@@ -122,6 +122,7 @@ public static class HttpResultExtension
     {
         return new ObjectResult(httpResult)
         {
+            DeclaredType = httpResult.GetType(),
             StatusCode = (int)httpResult.StatusCode,
         };
     }
