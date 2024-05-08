@@ -1,4 +1,5 @@
-﻿using RestfulHelpers;
+﻿using Microsoft.AspNetCore.Mvc;
+using RestfulHelpers;
 using RestfulHelpers.Common;
 using RestfulHelpers.Common.Internals;
 using RestfulHelpers.Interface;
@@ -107,5 +108,20 @@ public static class HttpResultExtension
             }
         }
         return httpResult;
+    }
+
+    /// <summary>
+    /// Converts <paramref name="httpResult"/> to its corresponding <see cref="ActionResult{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <param name="httpResult">The HTTP result to convert.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static ActionResult<T> ToActionResult<T>(this T httpResult)
+        where T : IHttpResult
+    {
+        return new ObjectResult(httpResult)
+        {
+            StatusCode = (int)httpResult.StatusCode,
+        };
     }
 }

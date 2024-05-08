@@ -1,4 +1,6 @@
-﻿using RestfulHelpers;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using RestfulHelpers;
 using RestfulHelpers.Common;
 using RestfulHelpers.Common.Internals;
 using RestfulHelpers.Interface;
@@ -200,6 +202,17 @@ public class HttpResult : Result, IHttpResult
     {
         return result.StatusCode;
     }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult"/> to <see cref="ActionResult{HttpResult}"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result{TValue}"/> to convert.
+    /// </param>
+    public static implicit operator ActionResult<HttpResult>(HttpResult result)
+    {
+        return result.ToActionResult();
+    }
 }
 
 /// <summary>
@@ -328,5 +341,16 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
     public static implicit operator TValue?(HttpResult<TValue> result)
     {
         return result.Value;
+    }
+
+    /// <summary>
+    /// Implicit operator for <see cref="HttpResult{TValue}"/> to <see cref="ActionResult{HttpResult}"/> conversion.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="Result{TValue}"/> to convert.
+    /// </param>
+    public static implicit operator ActionResult<HttpResult<TValue>>(HttpResult<TValue> result)
+    {
+        return result.ToActionResult();
     }
 }
