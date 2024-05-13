@@ -24,6 +24,7 @@ public class HttpError : Error
         init
         {
             statusCode = value;
+            ErrorCode = statusCode.ToString().ToSnakeCase().ToUpper();
             if (string.IsNullOrEmpty(Message))
             {
                 Message = "StatusCode: " + statusCode;
