@@ -126,6 +126,10 @@ public class HttpResult : Result, IHttpResult
             }
             return InternalStatusCode;
         }
+        init
+        {
+            InternalStatusCode = value;
+        }
     }
 
     /// <inheritdoc/>
