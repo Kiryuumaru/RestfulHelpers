@@ -3,6 +3,7 @@ using Nuke.Common.Tools.DotNet;
 using NukeBuildHelpers;
 using NukeBuildHelpers.Attributes;
 using NukeBuildHelpers.Enums;
+using NukeBuildHelpers.Models.RunContext;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,43 +18,54 @@ public class RestfulHelpersEntry : AppEntry<Build>
 
     public override RunsOnType PublishRunsOn => RunsOnType.Ubuntu2204;
 
-    [SecretHelper("NUGET_AUTH_TOKEN")]
+    [SecretVariable("NUGET_AUTH_TOKEN")]
     readonly string NuGetAuthToken;
 
-    [SecretHelper("GITHUB_TOKEN")]
+    [SecretVariable("GITHUB_TOKEN")]
     readonly string GithubToken;
 
-    public override bool RunParallel => false;
+    public override bool MainRelease => true;
 
-    public override void Build()
+    public override void Build(AppRunContext appRunContext)
     {
-        OutputDirectory.DeleteDirectory();
+        var projPath = RootDirectory / "TransactionHelpers" / "TransactionHelpers.csproj";
+        var version = "0.0.0";
+        var releaseNotes = "";
+        if (appRunContext is AppBumpRunContext appBumpRunContext)
+        {
+            version = appBumpRunContext.AppVersion.Version.ToString();
+            releaseNotes = appBumpRunContext.AppVersion.ReleaseNotes;
+        }
+
         DotNetTasks.DotNetClean(_ => _
-            .SetProject(NukeBuild.Solution.RestfulHelpers));
+            .SetProject(projPath));
         DotNetTasks.DotNetBuild(_ => _
-            .SetProjectFile(NukeBuild.Solution.RestfulHelpers)
+            .SetProjectFile(projPath)
             .SetConfiguration("Release"));
         DotNetTasks.DotNetPack(_ => _
-            .SetProject(NukeBuild.Solution.RestfulHelpers)
+            .SetProject(projPath)
             .SetConfiguration("Release")
             .SetNoRestore(true)
             .SetNoBuild(true)
             .SetIncludeSymbols(true)
             .SetSymbolPackageFormat("snupkg")
-            .SetVersion(NewVersion?.Version?.ToString() ?? "0.0.0")
-            .SetPackageReleaseNotes(NewVersion?.ReleaseNotes)
+            .SetVersion(version)
+            .SetPackageReleaseNotes(releaseNotes)
             .SetOutputDirectory(OutputDirectory));
     }
 
-    public override void Publish()
+    public override void Publish(AppRunContext appRunContext)
     {
-        DotNetTasks.DotNetNuGetPush(_ => _
-            .SetSource("https://nuget.pkg.github.com/kiryuumaru/index.json")
-            .SetApiKey(GithubToken)
-            .SetTargetPath(OutputDirectory / "**"));
-        DotNetTasks.DotNetNuGetPush(_ => _
-            .SetSource("https://api.nuget.org/v3/index.json")
-            .SetApiKey(NuGetAuthToken)
-            .SetTargetPath(OutputDirectory / "**"));
+        if (appRunContext is AppBumpRunContext)
+        {
+            DotNetTasks.DotNetNuGetPush(_ => _
+                .SetSource("https://nuget.pkg.github.com/kiryuumaru/index.json")
+                .SetApiKey(GithubToken)
+                .SetTargetPath(OutputDirectory / "**"));
+            DotNetTasks.DotNetNuGetPush(_ => _
+                .SetSource("https://api.nuget.org/v3/index.json")
+                .SetApiKey(NuGetAuthToken)
+                .SetTargetPath(OutputDirectory / "**"));
+        }
     }
 }
