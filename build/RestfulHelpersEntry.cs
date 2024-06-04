@@ -28,7 +28,7 @@ public class RestfulHelpersEntry : AppEntry<Build>
 
     public override void Build(AppRunContext appRunContext)
     {
-        var projPath = RootDirectory / "TransactionHelpers" / "TransactionHelpers.csproj";
+        var projectPath = RootDirectory / "TransactionHelpers" / "TransactionHelpers.csproj";
         var version = "0.0.0";
         var releaseNotes = "";
         if (appRunContext is AppBumpRunContext appBumpRunContext)
@@ -38,12 +38,12 @@ public class RestfulHelpersEntry : AppEntry<Build>
         }
 
         DotNetTasks.DotNetClean(_ => _
-            .SetProject(projPath));
+            .SetProject(projectPath));
         DotNetTasks.DotNetBuild(_ => _
-            .SetProjectFile(projPath)
+            .SetProjectFile(projectPath)
             .SetConfiguration("Release"));
         DotNetTasks.DotNetPack(_ => _
-            .SetProject(projPath)
+            .SetProject(projectPath)
             .SetConfiguration("Release")
             .SetNoRestore(true)
             .SetNoBuild(true)

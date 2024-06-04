@@ -21,11 +21,11 @@ public class RestfulHelpersTestEntry : AppTestEntry<Build>
 
     public override void Run(AppTestRunContext appTestContext)
     {
-        var projPath = RootDirectory / "RestfulHelpers.UnitTest" / "RestfulHelpers.UnitTest.csproj";
+        var projectPath = RootDirectory / "RestfulHelpers.UnitTest" / "RestfulHelpers.UnitTest.csproj";
 
         DotNetTasks.DotNetClean(_ => _
-            .SetProject(projPath));
+            .SetProject(projectPath));
         DotNetTasks.DotNetTest(_ => _
-            .SetProjectFile(projPath));
+            .SetProjectFile(projectPath));
     }
 }
