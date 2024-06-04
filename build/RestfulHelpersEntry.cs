@@ -30,7 +30,7 @@ public class RestfulHelpersEntry : AppEntry<Build>
 
     public override void Build(AppRunContext appRunContext)
     {
-        var projectPath = RootDirectory / "TransactionHelpers" / "TransactionHelpers.csproj";
+        var projectPath = RootDirectory / "RestfulHelpers" / "RestfulHelpers.csproj";
         var version = "0.0.0";
         var releaseNotes = "";
         if (appRunContext is AppBumpRunContext appBumpRunContext)
