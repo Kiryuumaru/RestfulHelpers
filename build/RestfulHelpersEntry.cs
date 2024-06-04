@@ -18,6 +18,8 @@ public class RestfulHelpersEntry : AppEntry<Build>
 
     public override RunsOnType PublishRunsOn => RunsOnType.Ubuntu2204;
 
+    public override RunType RunBuildOn => RunType.All;
+
     [SecretVariable("NUGET_AUTH_TOKEN")]
     readonly string NuGetAuthToken;
 
