@@ -29,3 +29,4 @@ public class RestfulHelpersTestEntry : AppTestEntry<Build>
             .SetProjectFile(projectPath));
     }
 }
+    
