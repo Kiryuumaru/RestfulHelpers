@@ -1,0 +1,25 @@
+﻿name: Dependabot Pull Request Bump
+
+on:
+  push:
+    branches:
+    - prerelease
+    - master
+    tags-ignore:
+    - bump-*
+
+concurrency: "dependabot-auto-bump"
+
+permissions:
+  contents: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start nuke bump
+        run: chmod +x ./build.sh && ./build.sh BumpAndForget --args "restful_helpers=patch"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
