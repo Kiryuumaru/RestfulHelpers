@@ -7,24 +7,3 @@ updates:
     open-pull-requests-limit: 100
     schedule:
       interval: "daily"
-
-  - package-ecosystem: "npm"
-    target-branch: "master"
-    directory: "/"
-    open-pull-requests-limit: 100
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: "nuget"
-    target-branch: "dev"
-    directory: "/"
-    open-pull-requests-limit: 100
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: "npm"
-    target-branch: "dev"
-    directory: "/"
-    open-pull-requests-limit: 100
-    schedule:
-      interval: "daily"
