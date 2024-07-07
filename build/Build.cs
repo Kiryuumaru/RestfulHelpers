@@ -46,7 +46,7 @@ public class Build : BaseNukeBuildHelpers
     BuildEntry RestfulHelpersBuild => _ => _
         .AppId("restful_helpers")
         .RunnerOS(RunnerOS.Ubuntu2204)
-        .Condition(true)
+        .CommonReleaseAsset(OutputDirectory)
         .Execute(context =>
         {
             var projectPath = RootDirectory / "RestfulHelpers" / "RestfulHelpers.csproj";
@@ -71,7 +71,7 @@ public class Build : BaseNukeBuildHelpers
                 .SetIncludeSymbols(true)
                 .SetSymbolPackageFormat("snupkg")
                 .SetVersion(version)
-                .SetPackageReleaseNotes(releaseNotes)
+                .SetPackageReleaseNotes(NormalizeReleaseNotes(releaseNotes))
                 .SetOutputDirectory(OutputDirectory));
         });
 
@@ -92,4 +92,12 @@ public class Build : BaseNukeBuildHelpers
                     .SetTargetPath(OutputDirectory / "**"));
             }
         });
+
+    private string? NormalizeReleaseNotes(string? releaseNotes)
+    {
+        return releaseNotes?
+            .Replace(",", "%2C")?
+            .Replace(":", "%3A")?
+            .Replace(";", "%3B");
+    }
 }

@@ -122,7 +122,7 @@ jobs:
     needs:
     - PRE_SETUP
     - RESTFULHELPERSBUILD
-    if: "! failure() && ! cancelled() && needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CONDITION == 'true' && needs.RESTFULHELPERSTEST.result == 'success'"
+    if: "! failure() && ! cancelled() && needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CONDITION == 'true' && needs.RESTFULHELPERSTEST.result != 'failure' && needs.RESTFULHELPERSBUILD.result != 'failure'"
     env:
       NUKE_PRE_SETUP: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP }}
   POST_SETUP:
