@@ -50,7 +50,7 @@ jobs:
       NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_MAIN_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_MAIN_RESTORE_KEY }}
   RESTFULHELPERSTEST:
     name: Test - restful_helpers (RestfulHelpersTest)
-    runs-on: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUNS_ON }}
+    runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUNS_ON) }}
     steps:
     - uses: actions/checkout@v4
     - name: Cache Run
@@ -71,7 +71,7 @@ jobs:
       NUKE_PRE_SETUP: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP }}
   RESTFULHELPERSBUILD:
     name: Build - restful_helpers (RestfulHelpersBuild)
-    runs-on: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUNS_ON }}
+    runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUNS_ON) }}
     steps:
     - uses: actions/checkout@v4
     - name: Cache Run
@@ -100,7 +100,7 @@ jobs:
       NUKE_PRE_SETUP: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP }}
   RESTFULHELPERSPUBLISH:
     name: Publish - restful_helpers (RestfulHelpersPublish)
-    runs-on: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUNS_ON }}
+    runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUNS_ON) }}
     steps:
     - uses: actions/checkout@v4
     - name: Download artifacts
