@@ -20,6 +20,8 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        fetch-tags: true
+        submodules: recursive
     - id: NUKE_RUN
       name: Run Nuke PipelinePreSetup
       run: chmod +x ./build.sh && ./build.sh PipelinePreSetup
@@ -36,23 +38,36 @@ jobs:
       NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_KEY }}
       NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_RESTORE_KEY }}
       NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_MAIN_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_MAIN_RESTORE_KEY }}
+      NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_FETCH_DEPTH: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_FETCH_DEPTH }}
+      NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_FETCH_TAGS: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_FETCH_TAGS }}
+      NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_SUBMODULES: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_SUBMODULES }}
       NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CONDITION: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CONDITION }}
       NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUNS_ON: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUNS_ON }}
       NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUN_SCRIPT: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUN_SCRIPT }}
       NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_KEY }}
       NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_RESTORE_KEY }}
       NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_MAIN_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_MAIN_RESTORE_KEY }}
+      NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_FETCH_DEPTH: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_FETCH_DEPTH }}
+      NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_FETCH_TAGS: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_FETCH_TAGS }}
+      NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_SUBMODULES: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_SUBMODULES }}
       NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CONDITION: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CONDITION }}
       NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUNS_ON: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUNS_ON }}
       NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT }}
       NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_KEY }}
       NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_RESTORE_KEY }}
       NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_MAIN_RESTORE_KEY: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_MAIN_RESTORE_KEY }}
+      NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_FETCH_DEPTH: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_FETCH_DEPTH }}
+      NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_FETCH_TAGS: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_FETCH_TAGS }}
+      NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_SUBMODULES: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_SUBMODULES }}
   RESTFULHELPERSTEST:
     name: Test - restful_helpers (RestfulHelpersTest)
     runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUNS_ON) }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_FETCH_DEPTH }}
+        fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_FETCH_TAGS }}
+        submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_SUBMODULES }}
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -62,8 +77,8 @@ jobs:
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_RESTORE_KEY }}
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_MAIN_RESTORE_KEY }}
     - id: NUKE_RUN
-      name: Run Nuke PipelineTest
-      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUN_SCRIPT }} PipelineTest --args "RestfulHelpersTest"
+      name: Run Nuke PipelineRunEntry
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUN_SCRIPT }} PipelineRunEntry --args "run=test;idsToRun=RestfulHelpersTest"
     needs:
     - PRE_SETUP
     if: "! failure() && ! cancelled() && needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CONDITION == 'true'"
@@ -74,6 +89,10 @@ jobs:
     runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUNS_ON) }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_FETCH_DEPTH }}
+        fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_FETCH_TAGS }}
+        submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_SUBMODULES }}
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -83,8 +102,8 @@ jobs:
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_RESTORE_KEY }}
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_MAIN_RESTORE_KEY }}
     - id: NUKE_RUN
-      name: Run Nuke PipelineBuild
-      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUN_SCRIPT }} PipelineBuild --args "RestfulHelpersBuild"
+      name: Run Nuke PipelineRunEntry
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUN_SCRIPT }} PipelineRunEntry --args "run=build;idsToRun=RestfulHelpersBuild"
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -103,6 +122,10 @@ jobs:
     runs-on: ${{ fromJson(needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUNS_ON) }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_FETCH_DEPTH }}
+        fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_FETCH_TAGS }}
+        submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_SUBMODULES }}
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
@@ -117,8 +140,8 @@ jobs:
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_RESTORE_KEY }}
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_MAIN_RESTORE_KEY }}
     - id: NUKE_RUN
-      name: Run Nuke PipelinePublish
-      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT }} PipelinePublish --args "RestfulHelpersPublish"
+      name: Run Nuke PipelineRunEntry
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT }} PipelineRunEntry --args "run=publish;idsToRun=RestfulHelpersPublish"
     needs:
     - PRE_SETUP
     - RESTFULHELPERSBUILD
@@ -130,6 +153,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+        submodules: recursive
     - name: Download Artifacts
       uses: actions/download-artifact@v4
       with:
