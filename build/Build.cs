@@ -25,10 +25,10 @@ public class Build : BaseNukeBuildHelpers
     public override string MainEnvironmentBranch { get; } = "master";
 
     [SecretVariable("NUGET_AUTH_TOKEN")]
-    readonly string NuGetAuthToken;
+    readonly string? NuGetAuthToken;
 
     [SecretVariable("GITHUB_TOKEN")]
-    readonly string GithubToken;
+    readonly string? GithubToken;
 
     TestEntry RestfulHelpersTest => _ => _
         .AppId("restful_helpers")
@@ -57,7 +57,6 @@ public class Build : BaseNukeBuildHelpers
                 version = bumpContext.AppVersion.Version.ToString();
                 releaseNotes = bumpContext.AppVersion.ReleaseNotes;
             }
-
             DotNetTasks.DotNetClean(_ => _
                 .SetProject(projectPath));
             DotNetTasks.DotNetBuild(_ => _
