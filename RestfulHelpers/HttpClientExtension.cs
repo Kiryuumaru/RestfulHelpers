@@ -52,15 +52,16 @@ public static class HttpClientExtension
 #else
             var httpResultMessageData = await httpResultMessage.Content.ReadAsStringAsync(cancellationToken);
 #endif
-            var doc = JsonSerializer.Deserialize<JsonDocument>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            JsonDocument? doc = null;
+            try
+            {
+                doc = JsonSerializer.Deserialize<JsonDocument>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            }
+            catch { }
 
             try
             {
-                if (doc == null)
-                {
-                    throw new Exception();
-                }
-                else if (doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.EnumerateObject().All(i =>
+                if (doc != null && doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.EnumerateObject().All(i =>
                     i.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase) ||
                     i.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase) ||
                     i.Name.Equals("hasvalue", StringComparison.InvariantCultureIgnoreCase) ||
@@ -69,7 +70,7 @@ public static class HttpClientExtension
                 {
                     return JsonSerializer.Deserialize<HttpResult>(httpResultMessageData, jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? throw new Exception();
                 }
-                else if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                else if (doc != null && doc.RootElement.ValueKind == JsonValueKind.Object &&
                     doc.RootElement.EnumerateObject().All(i =>
                         i.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase) ||
                         i.Name.Equals("hasvalue", StringComparison.InvariantCultureIgnoreCase) ||
@@ -80,10 +81,8 @@ public static class HttpClientExtension
                     result
                         .WithResult(wrapper)
                         .WithStatusCode(statusCode);
-                }
-                else
-                {
-                    httpResultMessage.EnsureSuccessStatusCode();
+
+                    return result;
                 }
             }
             catch
@@ -91,7 +90,13 @@ public static class HttpClientExtension
                 result
                     .WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"))
                     .WithStatusCode(statusCode);
+
+                return result;
             }
+
+            httpResultMessage.EnsureSuccessStatusCode();
+
+            result.WithStatusCode(statusCode);
         }
         catch (Exception ex)
         {
@@ -177,13 +182,16 @@ public static class HttpClientExtension
                     result
                         .WithResult(wrapper)
                         .WithStatusCode(statusCode);
+
+                    return result;
                 }
                 else
                 {
                     result
-                        .WithValue(doc.Deserialize<T>(jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+                        .WithValue(doc.Deserialize<T>(jsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+                        .WithStatusCode(statusCode);
 
-                    httpResultMessage.EnsureSuccessStatusCode();
+                    return result;
                 }
             }
             catch
