@@ -28,6 +28,7 @@ jobs:
       run: chmod +x ./build.sh && ./build.sh PipelinePreSetup
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    timeout-minutes: 10
     outputs:
       NUKE_PRE_SETUP: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP }}
       NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX: ${{ steps.NUKE_RUN.outputs.NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX }}
@@ -72,7 +73,7 @@ jobs:
     - name: Cache Run
       uses: actions/cache@v4
       with:
-        path: ./.nuke/cache
+        path: ./.nuke/temp/cache
         key: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_KEY }}
         restore-keys: |-
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_RESTORE_KEY }}
@@ -97,7 +98,7 @@ jobs:
     - name: Cache Run
       uses: actions/cache@v4
       with:
-        path: ./.nuke/cache
+        path: ./.nuke/temp/cache
         key: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_KEY }}
         restore-keys: |-
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_RESTORE_KEY }}
@@ -109,7 +110,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: restful_helpers___RESTFULHELPERSBUILD
-        path: ./.nuke/output/*
+        path: ./.nuke/temp/artifacts/*
         if-no-files-found: error
         retention-days: 1
     needs:
@@ -130,12 +131,12 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-        path: ./.nuke/temp/artifacts
+        path: ./.nuke/temp/artifacts-download
         pattern: restful_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
-        path: ./.nuke/cache
+        path: ./.nuke/temp/cache
         key: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_KEY }}
         restore-keys: |-
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_RESTORE_KEY }}
@@ -162,7 +163,7 @@ jobs:
     - name: Download Artifacts
       uses: actions/download-artifact@v4
       with:
-        path: ./.nuke/temp/artifacts
+        path: ./.nuke/temp/artifacts-download
     - name: Run Nuke PipelinePostSetup
       run: chmod +x ./build.sh && ./build.sh PipelinePostSetup
       env:
@@ -173,6 +174,7 @@ jobs:
     - RESTFULHELPERSBUILD
     - RESTFULHELPERSPUBLISH
     if: success() || failure() || always()
+    timeout-minutes: 10
     env:
       NUKE_PRE_SETUP: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP }}
       NUKE_RUN_RESULT_GITHUB_RESTFULHELPERSTEST: ${{ needs.RESTFULHELPERSTEST.result }}
