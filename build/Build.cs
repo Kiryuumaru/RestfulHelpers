@@ -46,7 +46,6 @@ public class Build : BaseNukeBuildHelpers
     BuildEntry RestfulHelpersBuild => _ => _
         .AppId("restful_helpers")
         .RunnerOS(RunnerOS.Ubuntu2204)
-        .CommonReleaseAsset(OutputDirectory)
         .Execute(context =>
         {
             var projectPath = RootDirectory / "RestfulHelpers" / "RestfulHelpers.csproj";
@@ -77,6 +76,7 @@ public class Build : BaseNukeBuildHelpers
     PublishEntry RestfulHelpersPublish => _ => _
         .AppId("restful_helpers")
         .RunnerOS(RunnerOS.Ubuntu2204)
+        .ReleaseCommonAsset(OutputDirectory)
         .Execute(context =>
         {
             if (context.RunType == RunType.Bump)

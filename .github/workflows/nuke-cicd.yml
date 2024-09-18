@@ -86,8 +86,8 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: restful_helpers___RESTFULHELPERSBUILD
-        path: ./.nuke/temp/artifacts/*
+        name: build___restful_helpers___RESTFULHELPERSBUILD
+        path: ./.nuke/temp/artifacts-upload/*
         if-no-files-found: error
         retention-days: 1
     needs:
@@ -140,7 +140,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
-        pattern: restful_helpers___*
+        pattern: build___restful_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -152,6 +152,13 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke PipelineRunEntry
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT }} PipelineRunEntry --args "run=publish;idsToRun=RestfulHelpersPublish"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: publish___restful_helpers___RESTFULHELPERSPUBLISH
+        path: ./.nuke/temp/artifacts-upload/*
+        if-no-files-found: error
+        retention-days: 1
     needs:
     - PRE_SETUP
     - RESTFULHELPERSBUILD
@@ -174,6 +181,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
+        pattern: publish___*
     - name: Run Nuke PipelinePostSetup
       run: chmod +x ./build.sh && ./build.sh PipelinePostSetup
       env:
