@@ -360,7 +360,7 @@ public static class HttpClientExtension
         contentStream.Seek(0, SeekOrigin.Begin);
 
         StreamContent streamContent = new(contentStream);
-        streamContent.Headers.ContentType = new("Application/json")
+        streamContent.Headers.ContentType = new("application/json")
         {
             CharSet = Encoding.UTF8.WebName
         };
@@ -419,7 +419,7 @@ public static class HttpClientExtension
         contentStream.Seek(0, SeekOrigin.Begin);
 
         StreamContent streamContent = new(contentStream);
-        streamContent.Headers.ContentType = new("Application/json")
+        streamContent.Headers.ContentType = new("application/json")
         {
             CharSet = Encoding.UTF8.WebName
         };
@@ -477,7 +477,7 @@ public static class HttpClientExtension
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
-            Content = new StringContent(content, Encoding.UTF8, "Application/json")
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
         };
 
         return Execute(httpClient, request, jsonSerializerOptions, cancellationToken);
@@ -529,7 +529,7 @@ public static class HttpClientExtension
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
-            Content = new StringContent(content, Encoding.UTF8, "Application/json")
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
         };
 
         return Execute<T>(httpClient, request, jsonSerializerOptions, cancellationToken);
@@ -582,7 +582,7 @@ public static class HttpClientExtension
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
-            Content = new StringContent(JsonSerializer.Serialize(content, jsonSerializerOptions), Encoding.UTF8, "Application/json")
+            Content = new StringContent(JsonSerializer.Serialize(content, jsonSerializerOptions), Encoding.UTF8, "application/json")
         };
 
         return Execute(httpClient, request, jsonSerializerOptions, cancellationToken);
@@ -636,7 +636,7 @@ public static class HttpClientExtension
     {
         HttpRequestMessage request = new(httpMethod, uri)
         {
-            Content = new StringContent(JsonSerializer.Serialize(content, jsonSerializerOptions), Encoding.UTF8, "Application/json")
+            Content = new StringContent(JsonSerializer.Serialize(content, jsonSerializerOptions), Encoding.UTF8, "application/json")
         };
 
         return Execute<T>(httpClient, request, jsonSerializerOptions, cancellationToken);
