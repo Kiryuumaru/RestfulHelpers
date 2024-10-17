@@ -26,8 +26,9 @@ namespace RestfulHelpers.UnitTest
 
 
         [Fact]
-        public async void Test1()
+        public async Task Test1()
         {
+            await Task.Delay(1000);
             //var apiEndpoint = "https://test.com";
 
             //var query = HttpUtility.ParseQueryString(string.Empty);

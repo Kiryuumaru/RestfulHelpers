@@ -13,9 +13,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Nuke.Common" Version="8.1.0" />
-		<PackageReference Include="NukeBuildHelpers" Version="6.0.0" />
-		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="Nuke.Common" Version="8.1.2" />
+		<PackageReference Include="NukeBuildHelpers" Version="6.3.5" />
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
 	</ItemGroup>
 
 </Project>
