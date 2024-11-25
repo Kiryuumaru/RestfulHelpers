@@ -5,6 +5,7 @@ using RestfulHelpers.Common.Internals;
 using RestfulHelpers.Interface;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -30,14 +31,14 @@ public static class HttpResultExtension
     /// <param name="httpResult">The HTTP result to modify.</param>
     /// <param name="statusCodes">The HTTP status codes to set.</param>
     /// <returns>The modified HTTP result.</returns>
-    public static T WithStatusCode<T>(this T httpResult, params HttpStatusCode[] statusCodes)
+    public static T WithStatusCode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicFields)] T>(this T httpResult, params HttpStatusCode[] statusCodes)
         where T : IHttpResult
     {
         if (statusCodes != null)
         {
             foreach (var statusCode in statusCodes)
             {
-                if (httpResult.GetType().GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
+                if (typeof(T).GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
                 {
                     resultStatCodeFieldInfo.SetValue(httpResult, statusCode);
                 }
@@ -62,7 +63,7 @@ public static class HttpResultExtension
     /// <param name="appendResultValues">Append values if the results has the same value type.</param>
     /// <param name="httpResults">The HTTP results to set.</param>
     /// <returns>The modified HTTP result.</returns>
-    public static T WithHttpResult<T>(this T httpResult, bool appendResultValues, params IHttpResult[] httpResults)
+    public static T WithHttpResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this T httpResult, bool appendResultValues, params IHttpResult[] httpResults)
         where T : IHttpResult
     {
         if (httpResults != null)
@@ -72,7 +73,7 @@ public static class HttpResultExtension
                 if (r != null)
                 {
                     httpResult.WithResult(appendResultValues, r);
-                    if (httpResult.GetType().GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
+                    if (typeof(T).GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
                     {
                         resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
                     }
@@ -89,7 +90,7 @@ public static class HttpResultExtension
     /// <param name="httpResult">The HTTP result to modify.</param>
     /// <param name="httpResults">The HTTP results to set.</param>
     /// <returns>The modified HTTP result.</returns>
-    public static T WithHttpResult<T>(this T httpResult, params IHttpResult[] httpResults)
+    public static T WithHttpResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this T httpResult, params IHttpResult[] httpResults)
         where T : IHttpResult
     {
         if (httpResults != null)
@@ -99,7 +100,7 @@ public static class HttpResultExtension
                 if (r != null)
                 {
                     httpResult.WithResult(r);
-                    if (httpResult.GetType().GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
+                    if (typeof(T).GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
                     {
                         resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
                     }
