@@ -41,7 +41,7 @@ public class HttpResult : Result, IHttpResult
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Success<TAppend>(TAppend resultAppend)
+    public override bool Success<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend>(TAppend resultAppend)
     {
         if (resultAppend is IHttpResult httpResult)
         {
@@ -56,7 +56,7 @@ public class HttpResult : Result, IHttpResult
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Success<TAppend, TAppendValue>(TAppend resultAppend, out TAppendValue? value)
+    public override bool Success<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend, TAppendValue>(TAppend resultAppend, out TAppendValue? value)
         where TAppendValue : default
     {
         if (resultAppend is IHttpResult httpResult)
@@ -73,7 +73,7 @@ public class HttpResult : Result, IHttpResult
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool SuccessAndHasValue<TAppend>(TAppend resultAppend)
+    public override bool SuccessAndHasValue<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend>(TAppend resultAppend)
     {
         if (resultAppend is IHttpResult httpResult)
         {
@@ -83,7 +83,7 @@ public class HttpResult : Result, IHttpResult
         {
             this.WithResult(resultAppend);
         }
-        if (resultAppend.GetType().GetProperty(nameof(IResult<object>.HasNoValue), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo hasNoValuePropertyInfo &&
+        if (typeof(TAppend).GetProperty(nameof(IResult<object>.HasNoValue), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo hasNoValuePropertyInfo &&
             hasNoValuePropertyInfo.GetValue(resultAppend) is bool hasNoValue)
         {
             return !resultAppend.IsError && !hasNoValue;
@@ -93,7 +93,7 @@ public class HttpResult : Result, IHttpResult
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool SuccessAndHasValue<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
+    public override bool SuccessAndHasValue<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
         where TAppendValue : default
     {
         if (resultAppend is IHttpResult httpResult)
