@@ -79,8 +79,8 @@ jobs:
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_RESTORE_KEY }}
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CACHE_MAIN_RESTORE_KEY }}
     - id: NUKE_RUN
-      name: Run Nuke PipelineRunEntry
-      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUN_SCRIPT }} PipelineRunEntry --args "run=build;idsToRun=RestfulHelpersBuild"
+      name: Rune Nuke RestfulHelpersBuild
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUN_SCRIPT }} Run --args "RestfulHelpersBuild"
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -116,8 +116,8 @@ jobs:
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_RESTORE_KEY }}
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CACHE_MAIN_RESTORE_KEY }}
     - id: NUKE_RUN
-      name: Run Nuke PipelineRunEntry
-      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUN_SCRIPT }} PipelineRunEntry --args "run=test;idsToRun=RestfulHelpersTest"
+      name: Rune Nuke RestfulHelpersTest
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUN_SCRIPT }} Run --args "RestfulHelpersTest"
     needs:
     - PRE_SETUP
     - RESTFULHELPERSBUILD
@@ -148,8 +148,8 @@ jobs:
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_RESTORE_KEY }}
           ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CACHE_MAIN_RESTORE_KEY }}
     - id: NUKE_RUN
-      name: Run Nuke PipelineRunEntry
-      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT }} PipelineRunEntry --args "run=publish;idsToRun=RestfulHelpersPublish"
+      name: Rune Nuke RestfulHelpersPublish
+      run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT }} Run --args "RestfulHelpersPublish"
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
