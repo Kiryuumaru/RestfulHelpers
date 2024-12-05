@@ -30,6 +30,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="Result"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static async Task<HttpResult> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -132,6 +135,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static async Task<HttpResult<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption httpCompletionOption, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -219,6 +225,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> Execute(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -248,6 +257,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> Execute<T>(this HttpClient httpClient, HttpRequestMessage httpRequestMessage, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -263,6 +275,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> Execute(this HttpClient httpClient, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -278,6 +293,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> Execute(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -308,6 +326,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -338,6 +359,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -354,6 +378,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -382,6 +409,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -413,6 +443,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -456,6 +489,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -472,6 +508,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent(this HttpClient httpClient, string content, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -493,6 +532,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -524,6 +566,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -560,6 +605,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -577,6 +625,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">A <see cref="JsonSerializerOptions"/> that can be used to serialize <paramref name="content"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -599,6 +650,9 @@ public static class HttpClientExtension
     /// <param name="jsonSerializerOptions">A <see cref="JsonSerializerOptions"/> that can be used to serialize <paramref name="content"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -631,6 +685,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T, TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, Uri uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
@@ -668,6 +725,9 @@ public static class HttpClientExtension
     /// There is no compatible <see cref="System.Text.Json.Serialization.JsonConverter"/>
     /// for <typeparamref name="T"/> or its serializable members.
     /// </exception>
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(RequiresDynamicCode)]
+#endif
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T, TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
