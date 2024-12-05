@@ -123,7 +123,7 @@ public class HttpResult : Result, IHttpResult
             }
             return InternalStatusCode;
         }
-        init
+        set
         {
             InternalStatusCode = value;
         }

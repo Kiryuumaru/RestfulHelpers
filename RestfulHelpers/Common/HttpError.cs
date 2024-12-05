@@ -21,7 +21,7 @@ public class HttpError : Error
     public HttpStatusCode StatusCode
     {
         get => statusCode;
-        init
+        set
         {
             statusCode = value;
             ErrorCode = statusCode.ToString().ToSnakeCase().ToUpper();
