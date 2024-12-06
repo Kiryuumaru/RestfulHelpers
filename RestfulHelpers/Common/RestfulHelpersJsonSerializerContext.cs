@@ -6,6 +6,7 @@ using TransactionHelpers;
 
 namespace RestfulHelpers.Common;
 
+#if NET7_0_OR_GREATER
 [JsonSerializable(typeof(Result))]
 [JsonSerializable(typeof(Error))]
 [JsonSerializable(typeof(HttpResult))]
@@ -14,3 +15,4 @@ namespace RestfulHelpers.Common;
 internal partial class RestfulHelpersJsonSerializerContext : JsonSerializerContext
 {
 }
+#endif
