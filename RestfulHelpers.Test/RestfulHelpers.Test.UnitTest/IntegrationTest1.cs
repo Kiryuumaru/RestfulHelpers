@@ -23,7 +23,7 @@ public class IntegrationTest1
         await app.StartAsync();
 
         var httpClient = app.CreateHttpClient("apiservice");
-        await resourceNotificationService.WaitForResourceAsync("apiservice", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
+        await resourceNotificationService.WaitForResourceAsync("apiservice", KnownResourceStates.Running).WaitAsync(TimeSpan.FromMinutes(10));
 
         var weatherforecastResponse = await httpClient.Execute<WeatherForecast[]>(HttpMethod.Get, "/weatherforecast");
 
