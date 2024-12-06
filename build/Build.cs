@@ -35,7 +35,7 @@ public class Build : BaseNukeBuildHelpers
         .RunnerOS(RunnerOS.Ubuntu2204)
         .Execute(context =>
         {
-            var projectPath = RootDirectory / "RestfulHelpers.UnitTest" / "RestfulHelpers.UnitTest.csproj";
+            var projectPath = RootDirectory / "RestfulHelpers.Test" / "RestfulHelpers.Test.UnitTest" / "RestfulHelpers.Test.UnitTest.csproj";
 
             DotNetTasks.DotNetClean(_ => _
                 .SetProject(projectPath));
