@@ -9,13 +9,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using RestfulHelpers.Common;
 using TransactionHelpers;
-
-using static RestfulHelpers.Common.Internals.Message;
 using TransactionHelpers.Interface;
 using System.Linq;
 using System.Text.Json.Serialization.Metadata;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+
+using static RestfulHelpers.Common.Internals.Message;
 
 namespace RestfulHelpers;
 
@@ -86,6 +86,7 @@ public static class HttpClientExtension
                         i.Name.Equals("issuccess", StringComparison.InvariantCultureIgnoreCase) ||
                         i.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase)))
                 {
+                    bool hasStatusCode = false;
                     foreach (var prop in doc.RootElement.EnumerateObject())
                     {
                         if (prop.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase))
@@ -105,8 +106,14 @@ public static class HttpClientExtension
                         }
                         if (prop.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase))
                         {
+                            hasStatusCode = true;
                             result.WithStatusCode((HttpStatusCode)prop.Value.GetInt32());
                         }
+                    }
+
+                    if (!hasStatusCode)
+                    {
+                        result.WithStatusCode(statusCode);
                     }
 
                     return result;
@@ -213,6 +220,7 @@ public static class HttpClientExtension
                         i.Name.Equals("issuccess", StringComparison.InvariantCultureIgnoreCase) ||
                         i.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase)))
                 {
+                    bool hasStatusCode = false;
                     foreach (var prop in doc.RootElement.EnumerateObject())
                     {
                         if (prop.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase))
@@ -232,8 +240,14 @@ public static class HttpClientExtension
                         }
                         if (prop.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase))
                         {
+                            hasStatusCode = true;
                             result.WithStatusCode((HttpStatusCode)prop.Value.GetInt32());
                         }
+                    }
+
+                    if (!hasStatusCode)
+                    {
+                        result.WithStatusCode(statusCode);
                     }
 
                     return result;
@@ -345,6 +359,7 @@ public static class HttpClientExtension
                     i.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase) ||
                     i.Name.Equals("issuccess", StringComparison.InvariantCultureIgnoreCase)))
                 {
+                    bool hasStatusCode = false;
                     foreach (var prop in doc.RootElement.EnumerateObject())
                     {
                         if (prop.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase))
@@ -364,8 +379,14 @@ public static class HttpClientExtension
                         }
                         if (prop.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase))
                         {
+                            hasStatusCode = true;
                             result.WithStatusCode((HttpStatusCode)prop.Value.GetInt32());
                         }
+                    }
+
+                    if (!hasStatusCode)
+                    {
+                        result.WithStatusCode(statusCode);
                     }
 
                     return result;
@@ -496,7 +517,13 @@ public static class HttpClientExtension
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
     public static Task<HttpResult> Execute(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return Execute(httpClient, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return Execute(httpClient, httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
     /// <summary>
@@ -593,7 +620,13 @@ public static class HttpClientExtension
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return Execute<T>(httpClient, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return Execute<T>(httpClient, httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
 #if NET7_0_OR_GREATER
@@ -623,7 +656,13 @@ public static class HttpClientExtension
     /// </exception>
     public static Task<HttpResult<T>> Execute<T>(this HttpClient httpClient, HttpMethod httpMethod, string uri, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default)
     {
-        return Execute<T>(httpClient, httpMethod, new Uri(uri), jsonTypeInfo, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return Execute<T>(httpClient, httpMethod, finalUri, jsonTypeInfo, cancellationToken);
     }
 #endif
 
@@ -666,7 +705,13 @@ public static class HttpClientExtension
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
     public static Task<HttpResult> ExecuteWithContent(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent(httpClient, contentStream, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent(httpClient, contentStream, httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
     /// <summary>
@@ -790,7 +835,13 @@ public static class HttpClientExtension
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent<T>(httpClient, contentStream, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent<T>(httpClient, contentStream, httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
 #if NET7_0_OR_GREATER
@@ -821,7 +872,13 @@ public static class HttpClientExtension
     /// </exception>
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, Stream contentStream, HttpMethod httpMethod, string uri, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent<T>(httpClient, contentStream, httpMethod, new Uri(uri), jsonTypeInfo, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent<T>(httpClient, contentStream, httpMethod, finalUri, jsonTypeInfo, cancellationToken);
     }
 #endif
 
@@ -857,7 +914,13 @@ public static class HttpClientExtension
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
     public static Task<HttpResult> ExecuteWithContent(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent(httpClient, content, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent(httpClient, content, httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
     /// <summary>
@@ -967,7 +1030,13 @@ public static class HttpClientExtension
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent<T>(httpClient, content, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent<T>(httpClient, content, httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
 #if NET7_0_OR_GREATER
@@ -998,7 +1067,13 @@ public static class HttpClientExtension
     /// </exception>
     public static Task<HttpResult<T>> ExecuteWithContent<T>(this HttpClient httpClient, string content, HttpMethod httpMethod, string uri, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent<T>(httpClient, content, httpMethod, new Uri(uri), jsonTypeInfo, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent<T>(httpClient, content, httpMethod, finalUri, jsonTypeInfo, cancellationToken);
     }
 #endif
 
@@ -1067,7 +1142,13 @@ public static class HttpClientExtension
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent(httpClient, JsonSerializer.Serialize(content, jsonSerializerOptions), httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent(httpClient, JsonSerializer.Serialize(content, jsonSerializerOptions), httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
 #if NET7_0_OR_GREATER
@@ -1084,7 +1165,13 @@ public static class HttpClientExtension
     /// <returns>An <see cref="HttpResult"/> object representing the result to the request.</returns>
     public static Task<HttpResult> ExecuteWithContent<TContent>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonTypeInfo<TContent> jsonTypeInfo, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent(httpClient, JsonSerializer.Serialize(content, jsonTypeInfo), httpMethod, new Uri(uri), jsonTypeInfo.Options, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent(httpClient, JsonSerializer.Serialize(content, jsonTypeInfo), httpMethod, finalUri, jsonTypeInfo.Options, cancellationToken);
     }
 #endif
 
@@ -1199,7 +1286,13 @@ public static class HttpClientExtension
     [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static Task<HttpResult<TResponse>> ExecuteWithContent<TContent, TResponse>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonSerializerOptions? jsonSerializerOptions = default, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent<TContent, TResponse>(httpClient, content, httpMethod, new Uri(uri), jsonSerializerOptions, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent<TContent, TResponse>(httpClient, content, httpMethod, finalUri, jsonSerializerOptions, cancellationToken);
     }
 
 #if NET7_0_OR_GREATER
@@ -1232,7 +1325,13 @@ public static class HttpClientExtension
     /// </exception>
     public static Task<HttpResult<TResponse>> ExecuteWithContent<TContent, TResponse>(this HttpClient httpClient, TContent content, HttpMethod httpMethod, string uri, JsonTypeInfo<TContent> contentJsonTypeInfo, JsonTypeInfo<TResponse> responseJsonTypeInfo, CancellationToken cancellationToken = default)
     {
-        return ExecuteWithContent(httpClient, content, httpMethod, new Uri(uri), contentJsonTypeInfo, responseJsonTypeInfo, cancellationToken);
+        var finalUri = Uri.TryCreate(uri, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri
+            : (httpClient.BaseAddress != null
+                ? new Uri(httpClient.BaseAddress, uri)
+                : throw new InvalidOperationException("HttpClient.BaseAddress is null, and the URI is not absolute."));
+
+        return ExecuteWithContent(httpClient, content, httpMethod, finalUri, contentJsonTypeInfo, responseJsonTypeInfo, cancellationToken);
     }
 #endif
 }

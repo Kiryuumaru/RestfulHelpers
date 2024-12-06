@@ -11,11 +11,15 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using TransactionHelpers;
 using TransactionHelpers.Exceptions;
 using TransactionHelpers.Interface;
+
+using static RestfulHelpers.Common.Internals.Message;
 
 namespace RestfulHelpers.Common;
 
@@ -24,7 +28,7 @@ namespace RestfulHelpers.Common;
 /// </summary>
 public class HttpResult : Result, IHttpResult
 {
-    internal HttpStatusCode InternalStatusCode = default;
+    internal HttpStatusCode InternalStatusCode = HttpStatusCode.OK;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -140,6 +144,18 @@ public class HttpResult : Result, IHttpResult
         return actionResult.ExecuteResultAsync(context);
     }
 
+#if NET7_0_OR_GREATER
+    /// <summary>
+    /// Creates the corresponding <see cref="IHttpResultResponse"/>.
+    /// </summary>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
+    /// <returns></returns>
+    public IHttpResultResponse GetResponse(JsonSerializerOptions? jsonSerializerOptions = null)
+    {
+        return HttpResultResponse.Create(this, jsonSerializerOptions);
+    }
+#endif
+
     /// <summary>
     /// Implicit operator for <see cref="Error"/> conversion.
     /// </summary>
@@ -235,7 +251,7 @@ public class HttpResult : Result, IHttpResult
 /// <inheritdoc/>
 public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 {
-    internal HttpStatusCode InternalStatusCode = default;
+    internal HttpStatusCode InternalStatusCode = HttpStatusCode.OK;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -268,6 +284,30 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
         };
         return actionResult.ExecuteResultAsync(context);
     }
+
+#if NET7_0_OR_GREATER
+    /// <summary>
+    /// Creates the corresponding <see cref="IHttpResultResponse"/>.
+    /// </summary>
+    /// <param name="jsonSerializerOptions">The <see cref="JsonSerializerOptions"/> to use when deserializing the result.</param>
+    /// <returns></returns>
+    [RequiresDynamicCode(RequiresDynamicCode)]
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
+    public IHttpResultResponse<TValue> GetResponse(JsonSerializerOptions? jsonSerializerOptions = null)
+    {
+        return HttpResultResponse<TValue>.Create(this, jsonSerializerOptions);
+    }
+
+    /// <summary>
+    /// Creates the corresponding <see cref="IHttpResultResponse"/>.
+    /// </summary>
+    /// <param name="jsonTypeInfo">The <see cref="JsonTypeInfo"/> metadata to use when deserializing the result.</param>
+    /// <returns></returns>
+    public IHttpResultResponse<TValue> GetResponse(JsonTypeInfo<TValue> jsonTypeInfo)
+    {
+        return HttpResultResponse<TValue>.Create(this, jsonTypeInfo);
+    }
+#endif
 
     /// <summary>
     /// Implicit operator for <see cref="Error"/> conversion.
