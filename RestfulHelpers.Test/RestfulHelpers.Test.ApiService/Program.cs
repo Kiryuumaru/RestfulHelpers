@@ -77,7 +77,6 @@ app.MapGet("/resultweathererror", () =>
 app.MapGet("/httpresult", () =>
 {
     HttpResult result = new();
-    result.WithStatusCode(HttpStatusCode.OK);
     return result.GetResponse();
 });
 

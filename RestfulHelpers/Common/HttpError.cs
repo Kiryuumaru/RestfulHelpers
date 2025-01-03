@@ -24,7 +24,7 @@ public class HttpError : Error
         set
         {
             Code = value.ToString().ToSnakeCase().ToUpper();
-            ProblemDetails = new ProblemDetails() { Status = (int)value };
+            Detail = new ProblemDetails() { Status = (int)value };
             if (string.IsNullOrEmpty(Message))
             {
                 Message = "StatusCode: " + value;
@@ -32,19 +32,9 @@ public class HttpError : Error
         }
     }
 
-    /// <summary>
-    /// Gets the status code of the error.
-    /// </summary>
-    [JsonIgnore]
-    public Microsoft.AspNetCore.Mvc.ProblemDetails? ProblemDetails
-    {
-        get => Detail as Microsoft.AspNetCore.Mvc.ProblemDetails;
-        set => Detail = value;
-    }
-
     internal void SetStatusCode(HttpStatusCode statusCode, Microsoft.AspNetCore.Mvc.ProblemDetails problemDetails)
     {
         StatusCode = statusCode;
-        ProblemDetails = problemDetails;
+        Detail = problemDetails;
     }
 }

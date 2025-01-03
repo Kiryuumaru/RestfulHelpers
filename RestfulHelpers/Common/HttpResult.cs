@@ -28,7 +28,7 @@ namespace RestfulHelpers.Common;
 /// </summary>
 public class HttpResult : Result, IHttpResult
 {
-    HttpStatusCode IHttpResult.InternalStatusCode { get; set; } = HttpStatusCode.OK;
+    HttpStatusCode IHttpResult.InternalStatusCode { get; set; }
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -121,16 +121,23 @@ public class HttpResult : Result, IHttpResult
     {
         get
         {
-            if (HttpError is HttpError httpError)
+            if ((this as IHttpResult).InternalStatusCode == 0)
             {
-                return httpError.StatusCode;
+                if (HttpError is HttpError httpError)
+                {
+                    return httpError.StatusCode;
+                }
+                else if (IsError)
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+
+                return HttpStatusCode.OK;
             }
+
             return (this as IHttpResult).InternalStatusCode;
         }
-        set
-        {
-            (this as IHttpResult).InternalStatusCode = value;
-        }
+        set => this.WithStatusCode(value);
     }
 
     /// <inheritdoc/>
@@ -256,7 +263,7 @@ public class HttpResult : Result, IHttpResult
 /// <inheritdoc/>
 public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 {
-    HttpStatusCode IHttpResult.InternalStatusCode { get; set; } = HttpStatusCode.OK;
+    HttpStatusCode IHttpResult.InternalStatusCode { get; set; }
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -267,16 +274,23 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
     {
         get
         {
-            if (HttpError is HttpError httpError)
+            if ((this as IHttpResult).InternalStatusCode == 0)
             {
-                return httpError.StatusCode;
+                if (HttpError is HttpError httpError)
+                {
+                    return httpError.StatusCode;
+                }
+                else if (IsError)
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+
+                return HttpStatusCode.OK;
             }
+
             return (this as IHttpResult).InternalStatusCode;
         }
-        init
-        {
-            (this as IHttpResult).InternalStatusCode = value;
-        }
+        set => this.WithStatusCode(value);
     }
 
     /// <inheritdoc/>
