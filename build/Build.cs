@@ -15,6 +15,7 @@ using NukeBuildHelpers.Entry;
 using NukeBuildHelpers.Entry.Extensions;
 using NukeBuildHelpers.RunContext.Extensions;
 using NukeBuildHelpers.Runner.Abstraction;
+using Serilog;
 
 public class Build : BaseNukeBuildHelpers
 {
@@ -29,6 +30,22 @@ public class Build : BaseNukeBuildHelpers
 
     [SecretVariable("GITHUB_TOKEN")]
     readonly string? GithubToken;
+
+    Target Clean => _ => _
+        .Executes(() =>
+        {
+            foreach (var path in RootDirectory.GetFiles("**", 99).Where(i => i.Name.EndsWith(".csproj")))
+            {
+                if (path.Name == "_build.csproj")
+                {
+                    continue;
+                }
+                Log.Information("Cleaning {path}", path);
+                (path.Parent / "bin").DeleteDirectory();
+                (path.Parent / "obj").DeleteDirectory();
+            }
+            (RootDirectory / ".vs").DeleteDirectory();
+        });
 
     TestEntry RestfulHelpersTest => _ => _
         .AppId("restful_helpers")

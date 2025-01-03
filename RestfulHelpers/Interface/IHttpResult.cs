@@ -15,6 +15,8 @@ namespace RestfulHelpers.Interface;
 /// </summary>
 public interface IHttpResult : IResult, IActionResult
 {
+    internal HttpStatusCode InternalStatusCode { get; set; }
+
     /// <summary>
     /// Gets the http error of the response.
     /// </summary>

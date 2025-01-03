@@ -28,7 +28,7 @@ namespace RestfulHelpers.Common;
 /// </summary>
 public class HttpResult : Result, IHttpResult
 {
-    internal HttpStatusCode InternalStatusCode = HttpStatusCode.OK;
+    HttpStatusCode IHttpResult.InternalStatusCode { get; set; } = HttpStatusCode.OK;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -125,11 +125,11 @@ public class HttpResult : Result, IHttpResult
             {
                 return httpError.StatusCode;
             }
-            return InternalStatusCode;
+            return (this as IHttpResult).InternalStatusCode;
         }
         set
         {
-            InternalStatusCode = value;
+            (this as IHttpResult).InternalStatusCode = value;
         }
     }
 
@@ -153,6 +153,11 @@ public class HttpResult : Result, IHttpResult
     public IHttpResultResponse GetResponse(JsonSerializerOptions? jsonSerializerOptions = null)
     {
         return HttpResultResponse.Create(this, jsonSerializerOptions);
+    }
+
+    Task IActionResult.ExecuteResultAsync(ActionContext context)
+    {
+        throw new NotImplementedException();
     }
 #endif
 
@@ -251,7 +256,7 @@ public class HttpResult : Result, IHttpResult
 /// <inheritdoc/>
 public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 {
-    internal HttpStatusCode InternalStatusCode = HttpStatusCode.OK;
+    HttpStatusCode IHttpResult.InternalStatusCode { get; set; } = HttpStatusCode.OK;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -266,11 +271,11 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
             {
                 return httpError.StatusCode;
             }
-            return InternalStatusCode;
+            return (this as IHttpResult).InternalStatusCode;
         }
         init
         {
-            InternalStatusCode = value;
+            (this as IHttpResult).InternalStatusCode = value;
         }
     }
 
