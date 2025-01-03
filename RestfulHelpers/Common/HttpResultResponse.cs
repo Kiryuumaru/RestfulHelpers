@@ -62,6 +62,11 @@ internal class HttpResultResponse : IHttpResultResponse
 
         httpContext.Response.StatusCode = StatusCode ?? 0;
 
+        foreach (var header in (HttpResult as IHttpResult).InternalResponseHeaders)
+        {
+            httpContext.Response.Headers.Append(header.Key, header.Value);
+        }
+
         return httpContext.Response.WriteAsJsonAsync(HttpResult, RestfulHelpersJsonSerializerContext.HttpResult);
     }
 
@@ -122,6 +127,11 @@ internal class HttpResultResponse<T> : IHttpResultResponse<T>
         ArgumentNullException.ThrowIfNull(httpContext);
 
         httpContext.Response.StatusCode = StatusCode ?? 0;
+
+        foreach (var header in (HttpResult as IHttpResult).InternalResponseHeaders)
+        {
+            httpContext.Response.Headers.Append(header.Key, header.Value);
+        }
 
         if (JsonTypeInfo == null)
         {

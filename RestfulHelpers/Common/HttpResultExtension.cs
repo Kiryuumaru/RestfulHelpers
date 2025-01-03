@@ -87,7 +87,7 @@ public static class HttpResultExtension
     /// <param name="appendResultValues">Append values if the results has the same value type.</param>
     /// <param name="httpResults">The HTTP results to set.</param>
     /// <returns>The modified HTTP result.</returns>
-    public static T WithHttpResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this T httpResult, bool appendResultValues, params IHttpResult[] httpResults)
+    public static T WithHttpResult<T>(this T httpResult, bool appendResultValues, params IHttpResult[] httpResults)
         where T : IHttpResult
     {
         if (httpResults != null)
@@ -97,9 +97,10 @@ public static class HttpResultExtension
                 if (r != null)
                 {
                     httpResult.WithResult(appendResultValues, r);
-                    if (typeof(T).GetProperty(nameof(IHttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo resultStatCodeFieldInfo)
+                    httpResult.InternalStatusCode = r.StatusCode;
+                    foreach (var header in r.InternalResponseHeaders)
                     {
-                        resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
+                        httpResult.WithHttpResponseHeader(header.Key, header.Value);
                     }
                 }
             }
@@ -114,7 +115,7 @@ public static class HttpResultExtension
     /// <param name="httpResult">The HTTP result to modify.</param>
     /// <param name="httpResults">The HTTP results to set.</param>
     /// <returns>The modified HTTP result.</returns>
-    public static T WithHttpResult<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(this T httpResult, params IHttpResult[] httpResults)
+    public static T WithHttpResult<T>(this T httpResult, params IHttpResult[] httpResults)
         where T : IHttpResult
     {
         if (httpResults != null)
@@ -124,12 +125,52 @@ public static class HttpResultExtension
                 if (r != null)
                 {
                     httpResult.WithResult(r);
-                    if (typeof(T).GetProperty(nameof(IHttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo resultStatCodeFieldInfo)
+                    httpResult.InternalStatusCode = r.StatusCode;
+                    foreach (var header in r.InternalResponseHeaders)
                     {
-                        resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
+                        httpResult.WithHttpResponseHeader(header.Key, header.Value);
                     }
                 }
             }
+        }
+        return httpResult;
+    }
+
+    /// <summary>
+    /// Adds a http response header to the given <paramref name="httpResult"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <param name="httpResult">The HTTP result to modify.</param>
+    /// <param name="headerName">The name of the header to add.</param>
+    /// <param name="headerValues">The values of the header to add.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static T WithHttpResponseHeader<T>(this T httpResult, string headerName, params string[] headerValues)
+        where T : IHttpResult
+    {
+        httpResult.InternalResponseHeaders[headerName] = headerValues;
+        return httpResult;
+    }
+
+    /// <summary>
+    /// Appends a http response header to the given <paramref name="httpResult"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <param name="httpResult">The HTTP result to modify.</param>
+    /// <param name="headerName">The name of the header to add.</param>
+    /// <param name="headerValues">The values of the header to add.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static T WithHttpResponseHeaderAppend<T>(this T httpResult, string headerName, params string[] headerValues)
+        where T : IHttpResult
+    {
+        if (httpResult.InternalResponseHeaders.TryGetValue(headerName, out string[]? value))
+        {
+            var existingValues = value.ToList();
+            existingValues.AddRange(headerValues);
+            httpResult.InternalResponseHeaders[headerName] = [.. existingValues];
+        }
+        else
+        {
+            httpResult.InternalResponseHeaders[headerName] = headerValues;
         }
         return httpResult;
     }

@@ -60,28 +60,40 @@ public static class HttpClientExtension
                                         i.Name.Equals("code", StringComparison.InvariantCultureIgnoreCase) ||
                                         i.Name.Equals("detail", StringComparison.InvariantCultureIgnoreCase)))
                                 {
-                                    var statucCodeProperty = errorElement
+                                    bool isHttpError = false;
+
+                                    var detailProperty = errorElement
                                         .EnumerateObject()
                                         .FirstOrDefault(p => string.Compare(p.Name, "detail", StringComparison.InvariantCultureIgnoreCase) == 0)
-                                        .Value
+                                        .Value;
+
+                                    if (detailProperty.ValueKind == JsonValueKind.Object)
+                                    {
+                                        var statucCodeProperty = detailProperty
                                             .EnumerateObject()
                                             .FirstOrDefault(p => string.Compare(p.Name, "status", StringComparison.InvariantCultureIgnoreCase) == 0);
 
-                                    if (statucCodeProperty.Value.ValueKind == JsonValueKind.Number)
+                                        if (statucCodeProperty.Value.ValueKind == JsonValueKind.Number)
+                                        {
+                                            isHttpError = true;
+                                        }
+                                    }
+
+                                    if (isHttpError)
                                     {
 #if NET7_0_OR_GREATER
-                                        var error = prop.Value.Deserialize(jsonSerializerContext.HttpError);
+                                        var error = errorElement.Deserialize(jsonSerializerContext.HttpError);
 #else
-                                        var error = prop.Value.Deserialize<HttpError>(jsonSerializerOptions);
+                                        var error = errorElement.Deserialize<HttpError>(jsonSerializerOptions);
 #endif
                                         result.WithError(error);
                                     }
                                     else
                                     {
 #if NET7_0_OR_GREATER
-                                        var error = prop.Value.Deserialize(jsonSerializerContext.Error);
+                                        var error = errorElement.Deserialize(jsonSerializerContext.Error);
 #else
-                                        var error = prop.Value.Deserialize<Error>(jsonSerializerOptions);
+                                        var error = errorElement.Deserialize<Error>(jsonSerializerOptions);
 #endif
                                         result.WithError(error);
                                     }
@@ -133,7 +145,7 @@ public static class HttpClientExtension
 
         jsonSerializerOptions ??= new JsonSerializerOptions(JsonSerializerDefaults.Web);
 #if NET7_0_OR_GREATER
-        var jsonSerializerContext = new RestfulHelpersJsonSerializerContext(jsonSerializerOptions);
+        var jsonSerializerContext = new RestfulHelpersJsonSerializerContext(new JsonSerializerOptions(jsonSerializerOptions));
 #endif
         JsonDocumentOptions jsonDocumentOptions = new()
         {
@@ -145,6 +157,9 @@ public static class HttpClientExtension
         try
         {
             var httpResultMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
+
+            var headers = httpResultMessage.Headers.Concat(httpResultMessage.Content.Headers);
+            (result as IHttpResult).InternalResponseHeaders = headers.ToDictionary(h => h.Key, h => h.Value.ToArray());
 
             statusCode = httpResultMessage.StatusCode;
 
@@ -211,7 +226,7 @@ public static class HttpClientExtension
         HttpResult<T> result = new();
         HttpStatusCode statusCode = HttpStatusCode.OK;
 
-        var jsonSerializerContext = new RestfulHelpersJsonSerializerContext(jsonTypeInfo.Options);
+        var jsonSerializerContext = new RestfulHelpersJsonSerializerContext(new JsonSerializerOptions(jsonTypeInfo.Options));
         JsonDocumentOptions jsonDocumentOptions = new()
         {
             AllowTrailingCommas = jsonTypeInfo.Options.AllowTrailingCommas,
@@ -222,6 +237,9 @@ public static class HttpClientExtension
         try
         {
             var httpResultMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
+
+            var headers = httpResultMessage.Headers.Concat(httpResultMessage.Content.Headers);
+            (result as IHttpResult).InternalResponseHeaders = headers.ToDictionary(h => h.Key, h => h.Value.ToArray());
 
             statusCode = httpResultMessage.StatusCode;
 
@@ -249,6 +267,11 @@ public static class HttpClientExtension
 #endif
             {
                 return result;
+            }
+
+            if (doc != null)
+            {
+                valueSetter(doc.RootElement);
             }
 
             result.WithStatusCode(statusCode);
@@ -305,12 +328,15 @@ public static class HttpClientExtension
             MaxDepth = jsonSerializerOptions.MaxDepth,
         };
 #if NET7_0_OR_GREATER
-        var jsonSerializerContext = new RestfulHelpersJsonSerializerContext(jsonSerializerOptions);
+        var jsonSerializerContext = new RestfulHelpersJsonSerializerContext(new JsonSerializerOptions(jsonSerializerOptions));
 #endif
 
         try
         {
             var httpResultMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
+
+            var headers = httpResultMessage.Headers.Concat(httpResultMessage.Content.Headers);
+            (result as IHttpResult).InternalResponseHeaders = headers.ToDictionary(h => h.Key, h => h.Value.ToArray());
 
             statusCode = httpResultMessage.StatusCode;
 
@@ -326,13 +352,23 @@ public static class HttpClientExtension
             }
             catch { }
 
+            void valueSetter(JsonElement valueElement)
+            {
+                result.WithValue(valueElement.Deserialize<T>(jsonSerializerOptions));
+            }
+
 #if NET7_0_OR_GREATER
-            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerContext, null))
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerContext, valueSetter))
 #else
-            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerOptions, null))
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerOptions, valueSetter))
 #endif
             {
                 return result;
+            }
+
+            if (doc != null)
+            {
+                valueSetter(doc.RootElement);
             }
 
             result.WithStatusCode(statusCode);

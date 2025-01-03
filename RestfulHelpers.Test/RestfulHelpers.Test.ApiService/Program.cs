@@ -53,7 +53,7 @@ app.MapGet("/result", () =>
 app.MapGet("/resulterror", () =>
 {
     Result result = new();
-    result.WithError("ERROR_CODE_123", "THIS IS ERROR");
+    result.WithError("THIS IS ERROR", "ERROR_CODE_123");
     return result;
 });
 
@@ -70,7 +70,7 @@ app.MapGet("/resultweathererror", () =>
     Result<WeatherForecast[]> result = new();
     var forecast = randomWeatherForecast();
     result.WithValue(forecast);
-    result.WithError("ERROR_CODE_123", "THIS IS ERROR");
+    result.WithError("THIS IS ERROR", "ERROR_CODE_123");
     return result;
 });
 
@@ -83,7 +83,7 @@ app.MapGet("/httpresult", () =>
 app.MapGet("/httpresulterror", () =>
 {
     HttpResult result = new();
-    result.WithError("ERROR_CODE_123", "THIS IS ERROR");
+    result.WithError("THIS IS ERROR", "ERROR_CODE_123");
     return result.GetResponse();
 });
 
@@ -97,6 +97,7 @@ app.MapGet("/httpresulterror_InternalServerError", () =>
 app.MapGet("/httpresulterror_Unauthorized", () =>
 {
     HttpResult result = new();
+    result.WithHttpResponseHeader("WWW-Authenticate", "Bearer1", "Bearer2");
     result.WithStatusCode(HttpStatusCode.Unauthorized);
     return result.GetResponse();
 });
