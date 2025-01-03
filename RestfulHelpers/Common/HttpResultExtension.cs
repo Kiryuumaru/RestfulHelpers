@@ -29,29 +29,53 @@ public static class HttpResultExtension
     /// </summary>
     /// <typeparam name="T">Type of the HTTP result.</typeparam>
     /// <param name="httpResult">The HTTP result to modify.</param>
-    /// <param name="statusCodes">The HTTP status codes to set.</param>
+    /// <param name="statusCode">The HTTP status code to set.</param>
     /// <returns>The modified HTTP result.</returns>
-    public static T WithStatusCode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicFields)] T>(this T httpResult, params HttpStatusCode[] statusCodes)
+    public static T WithStatusCode<T>(this T httpResult, HttpStatusCode statusCode)
         where T : IHttpResult
     {
-        if (statusCodes != null)
-        {
-            foreach (var statusCode in statusCodes)
-            {
-                if (typeof(T).GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
-                {
-                    resultStatCodeFieldInfo.SetValue(httpResult, statusCode);
-                }
+        httpResult.InternalStatusCode = statusCode;
 
-                if ((int)statusCode < 200 || (int)statusCode > 299)
-                {
-                    httpResult.WithError(new HttpError()
-                    {
-                        StatusCode = statusCode
-                    });
-                }
-            }
+        if ((int)statusCode < 200 || (int)statusCode > 299)
+        {
+            httpResult.WithError(new HttpError()
+            {
+                StatusCode = statusCode
+            });
         }
+
+        return httpResult;
+    }
+
+    /// <summary>
+    /// Sets the HTTP status code for the given <paramref name="httpResult"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <typeparam name="TProblemDetails">Type of the problem details.</typeparam>
+    /// <param name="httpResult">The HTTP result to modify.</param>
+    /// <param name="statusCode">The HTTP status code to set.</param>
+    /// <param name="problemDetails">Optional problem details to include in the error.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static T WithStatusCode<T, TProblemDetails>(this T httpResult, HttpStatusCode statusCode, TProblemDetails? problemDetails = null)
+        where T : IHttpResult
+        where TProblemDetails : ProblemDetails
+    {
+        httpResult.InternalStatusCode = statusCode;
+
+        if (problemDetails != null)
+        {
+            HttpError httpError = new();
+            httpError.SetStatusCode(statusCode, problemDetails);
+            httpResult.WithError(httpError);
+        }
+        else if ((int)statusCode < 200 || (int)statusCode > 299)
+        {
+            httpResult.WithError(new HttpError()
+            {
+                StatusCode = statusCode
+            });
+        }
+
         return httpResult;
     }
 
@@ -73,7 +97,7 @@ public static class HttpResultExtension
                 if (r != null)
                 {
                     httpResult.WithResult(appendResultValues, r);
-                    if (typeof(T).GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
+                    if (typeof(T).GetProperty(nameof(IHttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo resultStatCodeFieldInfo)
                     {
                         resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
                     }
@@ -100,7 +124,7 @@ public static class HttpResultExtension
                 if (r != null)
                 {
                     httpResult.WithResult(r);
-                    if (typeof(T).GetField(nameof(HttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is FieldInfo resultStatCodeFieldInfo)
+                    if (typeof(T).GetProperty(nameof(IHttpResult.InternalStatusCode), BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo resultStatCodeFieldInfo)
                     {
                         resultStatCodeFieldInfo.SetValue(httpResult, r.StatusCode);
                     }

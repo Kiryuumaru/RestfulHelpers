@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Mail;
@@ -13,22 +14,27 @@ namespace RestfulHelpers.Common;
 /// </summary>
 public class HttpError : Error
 {
-    private HttpStatusCode statusCode;
-
     /// <summary>
     /// Gets the status code of the error.
     /// </summary>
+    [JsonIgnore]
     public HttpStatusCode StatusCode
     {
-        get => statusCode;
+        get => (HttpStatusCode)((Detail as Microsoft.AspNetCore.Mvc.ProblemDetails)?.Status ?? default);
         set
         {
-            statusCode = value;
-            ErrorCode = statusCode.ToString().ToSnakeCase().ToUpper();
+            Code = value.ToString().ToSnakeCase().ToUpper();
+            Detail = new ProblemDetails() { Status = (int)value };
             if (string.IsNullOrEmpty(Message))
             {
-                Message = "StatusCode: " + statusCode;
+                Message = "StatusCode: " + value;
             }
         }
+    }
+
+    internal void SetStatusCode(HttpStatusCode statusCode, Microsoft.AspNetCore.Mvc.ProblemDetails problemDetails)
+    {
+        StatusCode = statusCode;
+        Detail = problemDetails;
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using RestfulHelpers.Common;
+using RestfulHelpers.Interface;
 using TransactionHelpers;
 using TransactionHelpers.Interface;
 using System.Linq;
@@ -16,6 +17,7 @@ using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
 using static RestfulHelpers.Common.Internals.Message;
+using System.Xml.Linq;
 
 namespace RestfulHelpers;
 
@@ -24,6 +26,97 @@ namespace RestfulHelpers;
 /// </summary>
 public static class HttpClientExtension
 {
+#if NET7_0_OR_GREATER
+    private static bool VerifyCascade(IHttpResult result, string httpResultMessageData, HttpStatusCode statusCode, JsonDocument? doc, RestfulHelpersJsonSerializerContext jsonSerializerContext, Action<JsonElement>? onValueElement)
+#else
+    private static bool VerifyCascade(IHttpResult result, string httpResultMessageData, HttpStatusCode statusCode, JsonDocument? doc, JsonSerializerOptions jsonSerializerOptions, Action<JsonElement>? onValueElement)
+#endif
+    {
+        try
+        {
+            if (doc != null && doc.RootElement.ValueKind == JsonValueKind.Object &&
+                doc.RootElement.EnumerateObject().All(i =>
+                    i.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase) ||
+                    i.Name.Equals("hasvalue", StringComparison.InvariantCultureIgnoreCase) ||
+                    i.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase) ||
+                    i.Name.Equals("issuccess", StringComparison.InvariantCultureIgnoreCase) ||
+                    i.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                bool hasStatusCode = false;
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    if (prop.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        onValueElement?.Invoke(prop.Value);
+                    }
+                    if (prop.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (prop.Value.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var errorElement in prop.Value.EnumerateArray())
+                            {
+                                if (errorElement.EnumerateObject().All(i =>
+                                        i.Name.Equals("message", StringComparison.InvariantCultureIgnoreCase) ||
+                                        i.Name.Equals("code", StringComparison.InvariantCultureIgnoreCase) ||
+                                        i.Name.Equals("detail", StringComparison.InvariantCultureIgnoreCase)))
+                                {
+                                    var statucCodeProperty = errorElement
+                                        .EnumerateObject()
+                                        .FirstOrDefault(p => string.Compare(p.Name, "detail", StringComparison.InvariantCultureIgnoreCase) == 0)
+                                        .Value
+                                            .EnumerateObject()
+                                            .FirstOrDefault(p => string.Compare(p.Name, "status", StringComparison.InvariantCultureIgnoreCase) == 0);
+
+                                    if (statucCodeProperty.Value.ValueKind == JsonValueKind.Number)
+                                    {
+#if NET7_0_OR_GREATER
+                                        var error = prop.Value.Deserialize(jsonSerializerContext.HttpError);
+#else
+                                        var error = prop.Value.Deserialize<HttpError>(jsonSerializerOptions);
+#endif
+                                        result.WithError(error);
+                                    }
+                                    else
+                                    {
+#if NET7_0_OR_GREATER
+                                        var error = prop.Value.Deserialize(jsonSerializerContext.Error);
+#else
+                                        var error = prop.Value.Deserialize<Error>(jsonSerializerOptions);
+#endif
+                                        result.WithError(error);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (prop.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        hasStatusCode = true;
+                        result.InternalStatusCode = (HttpStatusCode)prop.Value.GetInt32();
+                    }
+                }
+
+                if (!hasStatusCode)
+                {
+                    result.InternalStatusCode = statusCode;
+                }
+
+                return true;
+            }
+        }
+        catch
+        {
+            result
+                .WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"));
+
+            result.InternalStatusCode = statusCode;
+
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Executes an HTTP request and returns the result as an <see cref="HttpResult"/> object.
     /// </summary>
@@ -49,15 +142,6 @@ public static class HttpClientExtension
             MaxDepth = jsonSerializerOptions.MaxDepth,
         };
 
-        if (httpRequestMessage.Content != null)
-        {
-#if NET9_0_OR_GREATER
-            await httpRequestMessage.Content.LoadIntoBufferAsync(cancellationToken);
-#else
-            await httpRequestMessage.Content.LoadIntoBufferAsync();
-#endif
-        }
-
         try
         {
             var httpResultMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
@@ -76,59 +160,14 @@ public static class HttpClientExtension
             }
             catch { }
 
-            try
-            {
-                if (doc != null && doc.RootElement.ValueKind == JsonValueKind.Object &&
-                    doc.RootElement.EnumerateObject().All(i =>
-                        i.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("hasvalue", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("issuccess", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    bool hasStatusCode = false;
-                    foreach (var prop in doc.RootElement.EnumerateObject())
-                    {
-                        if (prop.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase))
-                        {
 #if NET7_0_OR_GREATER
-                            var errors = prop.Value.Deserialize(jsonSerializerContext.ListError);
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerContext, null))
 #else
-                            var errors = prop.Value.Deserialize<List<Error>>(jsonSerializerOptions);
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerOptions, null))
 #endif
-                            if (errors != null)
-                            {
-                                foreach (var error in errors)
-                                {
-                                    result.WithError(error);
-                                }
-                            }
-                        }
-                        if (prop.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            hasStatusCode = true;
-                            result.WithStatusCode((HttpStatusCode)prop.Value.GetInt32());
-                        }
-                    }
-
-                    if (!hasStatusCode)
-                    {
-                        result.WithStatusCode(statusCode);
-                    }
-
-                    return result;
-                }
-            }
-            catch
             {
-                result
-                    .WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"))
-                    .WithStatusCode(statusCode);
-
                 return result;
             }
-
-            httpResultMessage.EnsureSuccessStatusCode();
 
             result.WithStatusCode(statusCode);
         }
@@ -180,15 +219,6 @@ public static class HttpClientExtension
             MaxDepth = jsonTypeInfo.Options.MaxDepth,
         };
 
-        if (httpRequestMessage.Content != null)
-        {
-#if NET9_0_OR_GREATER
-            await httpRequestMessage.Content.LoadIntoBufferAsync(cancellationToken);
-#else
-            await httpRequestMessage.Content.LoadIntoBufferAsync();
-#endif
-        }
-
         try
         {
             var httpResultMessage = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
@@ -206,67 +236,22 @@ public static class HttpClientExtension
                 doc = JsonDocument.Parse(httpResultMessageData, jsonDocumentOptions);
             }
             catch { }
-            try
+
+            void valueSetter(JsonElement valueElement)
             {
-                if (doc == null)
-                {
-                    throw new Exception();
-                }
-                else if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-                    doc.RootElement.EnumerateObject().All(i =>
-                        i.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("hasvalue", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("issuccess", StringComparison.InvariantCultureIgnoreCase) ||
-                        i.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    bool hasStatusCode = false;
-                    foreach (var prop in doc.RootElement.EnumerateObject())
-                    {
-                        if (prop.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            result.WithValue(prop.Value.Deserialize(jsonTypeInfo));
-                        }
-                        if (prop.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            var errors = prop.Value.Deserialize(jsonSerializerContext.ListError);
-                            if (errors != null)
-                            {
-                                foreach (var error in errors)
-                                {
-                                    result.WithError(error);
-                                }
-                            }
-                        }
-                        if (prop.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            hasStatusCode = true;
-                            result.WithStatusCode((HttpStatusCode)prop.Value.GetInt32());
-                        }
-                    }
-
-                    if (!hasStatusCode)
-                    {
-                        result.WithStatusCode(statusCode);
-                    }
-
-                    return result;
-                }
-                else
-                {
-                    result
-                        .WithValue(doc.Deserialize(jsonTypeInfo))
-                        .WithStatusCode(statusCode);
-
-                    return result;
-                }
+                result.WithValue(valueElement.Deserialize(jsonTypeInfo));
             }
-            catch
+
+#if NET7_0_OR_GREATER
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerContext, valueSetter))
+#else
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerOptions, valueSetter))
+#endif
             {
-                result
-                    .WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"))
-                    .WithStatusCode(statusCode);
+                return result;
             }
+
+            result.WithStatusCode(statusCode);
         }
         catch (Exception ex)
         {
@@ -319,15 +304,9 @@ public static class HttpClientExtension
             CommentHandling = jsonSerializerOptions.ReadCommentHandling,
             MaxDepth = jsonSerializerOptions.MaxDepth,
         };
-
-        if (httpRequestMessage.Content != null)
-        {
-#if NET9_0_OR_GREATER
-            await httpRequestMessage.Content.LoadIntoBufferAsync(cancellationToken);
-#else
-            await httpRequestMessage.Content.LoadIntoBufferAsync();
+#if NET7_0_OR_GREATER
+        var jsonSerializerContext = new RestfulHelpersJsonSerializerContext(jsonSerializerOptions);
 #endif
-        }
 
         try
         {
@@ -346,66 +325,17 @@ public static class HttpClientExtension
                 doc = JsonDocument.Parse(httpResultMessageData, jsonDocumentOptions);
             }
             catch { }
-            try
+
+#if NET7_0_OR_GREATER
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerContext, null))
+#else
+            if (VerifyCascade(result, httpResultMessageData, statusCode, doc, jsonSerializerOptions, null))
+#endif
             {
-                if (doc == null)
-                {
-                    throw new Exception();
-                }
-                else if (doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.EnumerateObject().All(i =>
-                    i.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase) ||
-                    i.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase) ||
-                    i.Name.Equals("hasvalue", StringComparison.InvariantCultureIgnoreCase) ||
-                    i.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase) ||
-                    i.Name.Equals("issuccess", StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    bool hasStatusCode = false;
-                    foreach (var prop in doc.RootElement.EnumerateObject())
-                    {
-                        if (prop.Name.Equals("value", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            result.WithValue(prop.Value.Deserialize<T>(jsonSerializerOptions));
-                        }
-                        if (prop.Name.Equals("errors", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            var errors = prop.Value.Deserialize<List<Error>>(jsonSerializerOptions);
-                            if (errors != null)
-                            {
-                                foreach (var error in errors)
-                                {
-                                    result.WithError(error);
-                                }
-                            }
-                        }
-                        if (prop.Name.Equals("statuscode", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            hasStatusCode = true;
-                            result.WithStatusCode((HttpStatusCode)prop.Value.GetInt32());
-                        }
-                    }
-
-                    if (!hasStatusCode)
-                    {
-                        result.WithStatusCode(statusCode);
-                    }
-
-                    return result;
-                }
-                else
-                {
-                    result
-                        .WithValue(doc.Deserialize<T>(jsonSerializerOptions))
-                        .WithStatusCode(statusCode);
-
-                    return result;
-                }
+                return result;
             }
-            catch
-            {
-                result
-                    .WithError(new JsonException($"Result is not in json format: {httpResultMessageData}"))
-                    .WithStatusCode(statusCode);
-            }
+
+            result.WithStatusCode(statusCode);
         }
         catch (Exception ex)
         {

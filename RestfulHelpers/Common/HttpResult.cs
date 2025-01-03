@@ -28,7 +28,7 @@ namespace RestfulHelpers.Common;
 /// </summary>
 public class HttpResult : Result, IHttpResult
 {
-    internal HttpStatusCode InternalStatusCode = HttpStatusCode.OK;
+    HttpStatusCode IHttpResult.InternalStatusCode { get; set; }
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -121,16 +121,23 @@ public class HttpResult : Result, IHttpResult
     {
         get
         {
-            if (HttpError is HttpError httpError)
+            if ((this as IHttpResult).InternalStatusCode == 0)
             {
-                return httpError.StatusCode;
+                if (HttpError is HttpError httpError)
+                {
+                    return httpError.StatusCode;
+                }
+                else if (IsError)
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+
+                return HttpStatusCode.OK;
             }
-            return InternalStatusCode;
+
+            return (this as IHttpResult).InternalStatusCode;
         }
-        set
-        {
-            InternalStatusCode = value;
-        }
+        set => this.WithStatusCode(value);
     }
 
     /// <inheritdoc/>
@@ -153,6 +160,11 @@ public class HttpResult : Result, IHttpResult
     public IHttpResultResponse GetResponse(JsonSerializerOptions? jsonSerializerOptions = null)
     {
         return HttpResultResponse.Create(this, jsonSerializerOptions);
+    }
+
+    Task IActionResult.ExecuteResultAsync(ActionContext context)
+    {
+        throw new NotImplementedException();
     }
 #endif
 
@@ -251,7 +263,7 @@ public class HttpResult : Result, IHttpResult
 /// <inheritdoc/>
 public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 {
-    internal HttpStatusCode InternalStatusCode = HttpStatusCode.OK;
+    HttpStatusCode IHttpResult.InternalStatusCode { get; set; }
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -262,16 +274,23 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
     {
         get
         {
-            if (HttpError is HttpError httpError)
+            if ((this as IHttpResult).InternalStatusCode == 0)
             {
-                return httpError.StatusCode;
+                if (HttpError is HttpError httpError)
+                {
+                    return httpError.StatusCode;
+                }
+                else if (IsError)
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+
+                return HttpStatusCode.OK;
             }
-            return InternalStatusCode;
+
+            return (this as IHttpResult).InternalStatusCode;
         }
-        init
-        {
-            InternalStatusCode = value;
-        }
+        set => this.WithStatusCode(value);
     }
 
     /// <inheritdoc/>
