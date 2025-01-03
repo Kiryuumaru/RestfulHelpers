@@ -30,6 +30,8 @@ public class HttpResult : Result, IHttpResult
 {
     HttpStatusCode IHttpResult.InternalStatusCode { get; set; }
 
+    Dictionary<string, string[]> IHttpResult.InternalResponseHeaders { get; set; } = [];
+
     /// <inheritdoc/>
     [JsonIgnore]
     public override Error? Error => base.Error;
@@ -45,71 +47,52 @@ public class HttpResult : Result, IHttpResult
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Success<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend>(TAppend resultAppend)
+    public override bool Success<TAppend>(TAppend resultAppend)
     {
         if (resultAppend is IHttpResult httpResult)
         {
             this.WithHttpResult(httpResult);
         }
-        else
-        {
-            this.WithResult(resultAppend);
-        }
-        return !resultAppend.IsError;
+
+        return base.Success(resultAppend);
     }
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Success<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend, TAppendValue>(TAppend resultAppend, out TAppendValue? value)
+    public override bool Success<TAppend, TAppendValue>(TAppend resultAppend, out TAppendValue? value)
         where TAppendValue : default
     {
         if (resultAppend is IHttpResult httpResult)
         {
             this.WithHttpResult(httpResult);
         }
-        else
-        {
-            this.WithResult(resultAppend);
-        }
-        value = resultAppend.Value;
-        return !resultAppend.IsError;
+
+        return base.Success(resultAppend, out value);
     }
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool SuccessAndHasValue<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend>(TAppend resultAppend)
+    public override bool SuccessAndHasValue<TAppend>(TAppend resultAppend)
     {
         if (resultAppend is IHttpResult httpResult)
         {
             this.WithHttpResult(httpResult);
         }
-        else
-        {
-            this.WithResult(resultAppend);
-        }
-        if (typeof(TAppend).GetProperty(nameof(IResult<object>.HasNoValue), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) is PropertyInfo hasNoValuePropertyInfo &&
-            hasNoValuePropertyInfo.GetValue(resultAppend) is bool hasNoValue)
-        {
-            return !resultAppend.IsError && !hasNoValue;
-        }
-        return !resultAppend.IsError;
+
+        return base.SuccessAndHasValue(resultAppend);
     }
 
     /// <inheritdoc/>
     [MemberNotNullWhen(false, nameof(Error))]
-    public override bool SuccessAndHasValue<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
+    public override bool SuccessAndHasValue<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
         where TAppendValue : default
     {
         if (resultAppend is IHttpResult httpResult)
         {
             this.WithHttpResult(httpResult);
         }
-        else
-        {
-            this.WithResult(resultAppend);
-        }
-        value = resultAppend.Value;
-        return !resultAppend.IsError && !resultAppend.HasNoValue;
+
+        return base.SuccessAndHasValue(resultAppend, out value);
     }
 
     /// <inheritdoc/>
@@ -141,6 +124,10 @@ public class HttpResult : Result, IHttpResult
     }
 
     /// <inheritdoc/>
+    [JsonIgnore]
+    public IReadOnlyDictionary<string, string[]> ResponseHeaders => (this as IHttpResult).InternalResponseHeaders.AsReadOnly();
+
+    /// <inheritdoc/>
     public Task ExecuteResultAsync(ActionContext context)
     {
         var actionResult = new ObjectResult(this)
@@ -160,11 +147,6 @@ public class HttpResult : Result, IHttpResult
     public IHttpResultResponse GetResponse(JsonSerializerOptions? jsonSerializerOptions = null)
     {
         return HttpResultResponse.Create(this, jsonSerializerOptions);
-    }
-
-    Task IActionResult.ExecuteResultAsync(ActionContext context)
-    {
-        throw new NotImplementedException();
     }
 #endif
 
@@ -265,6 +247,8 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
 {
     HttpStatusCode IHttpResult.InternalStatusCode { get; set; }
 
+    Dictionary<string, string[]> IHttpResult.InternalResponseHeaders { get; set; } = [];
+
     /// <inheritdoc/>
     [JsonIgnore]
     public HttpError? HttpError => Error as HttpError;
@@ -292,6 +276,10 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
         }
         set => this.WithStatusCode(value);
     }
+
+    /// <inheritdoc/>
+    [JsonIgnore]
+    public IReadOnlyDictionary<string, string[]> ResponseHeaders => (this as IHttpResult).InternalResponseHeaders.AsReadOnly();
 
     /// <inheritdoc/>
     public Task ExecuteResultAsync(ActionContext context)
