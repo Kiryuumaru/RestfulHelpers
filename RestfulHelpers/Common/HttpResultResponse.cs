@@ -67,7 +67,7 @@ internal class HttpResultResponse : IHttpResultResponse
             httpContext.Response.Headers.Append(header.Key, header.Value);
         }
 
-        return httpContext.Response.WriteAsJsonAsync(HttpResult, RestfulHelpersJsonSerializerContext.HttpResult);
+        return httpContext.Response.WriteAsJsonAsync(HttpResult.SafeClone(), RestfulHelpersJsonSerializerContext.HttpResult);
     }
 
     public Task ExecuteResultAsync(ActionContext context)
@@ -145,7 +145,7 @@ internal class HttpResultResponse<T> : IHttpResultResponse<T>
         {
             using var jsonWriter = new Utf8JsonWriter(httpContext.Response.BodyWriter);
 
-            var jsonNode = JsonSerializer.SerializeToNode(HttpResult, RestfulHelpersJsonSerializerContext.IHttpResult)!;
+            var jsonNode = JsonSerializer.SerializeToNode(HttpResult.SafeClone(), RestfulHelpersJsonSerializerContext.IHttpResult)!;
 
             string valuePropName = JsonTypeInfo.Options.PropertyNamingPolicy?.ConvertName("Value") ?? "value";
 

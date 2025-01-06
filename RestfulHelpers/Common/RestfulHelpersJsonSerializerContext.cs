@@ -12,7 +12,7 @@ namespace RestfulHelpers.Common;
 
 #if NET7_0_OR_GREATER
 /// <inheritdoc/>
-public class ProblemDetails : global::Microsoft.AspNetCore.Mvc.ProblemDetails { }
+internal class PatchForProblemDetails : global::Microsoft.AspNetCore.Mvc.ProblemDetails { }
 
 [JsonSerializable(typeof(Result))]
 [JsonSerializable(typeof(Error))]
@@ -21,7 +21,7 @@ public class ProblemDetails : global::Microsoft.AspNetCore.Mvc.ProblemDetails { 
 [JsonSerializable(typeof(List<Error>))]
 [JsonSerializable(typeof(IResult))]
 [JsonSerializable(typeof(IHttpResult))]
-[JsonSerializable(typeof(ProblemDetails))]
+[JsonSerializable(typeof(PatchForProblemDetails))]
 internal partial class RestfulHelpersJsonSerializerContext : JsonSerializerContext
 {
     internal static RestfulHelpersJsonSerializerContext WebDefault { get; } = new(new JsonSerializerOptions
