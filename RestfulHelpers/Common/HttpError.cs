@@ -24,7 +24,7 @@ public class HttpError : Error
     {
         get
         {
-            if (Detail is ProblemDetails problemDetails)
+            if (Detail is Microsoft.AspNetCore.Mvc.ProblemDetails problemDetails)
             {
                 return (HttpStatusCode)(problemDetails.Status ?? default);
             }
@@ -44,7 +44,7 @@ public class HttpError : Error
         set
         {
             Code = value.ToString().ToSnakeCase().ToUpper();
-            Detail = new ProblemDetails() { Status = (int)value };
+            Detail = new Microsoft.AspNetCore.Mvc.ProblemDetails() { Status = (int)value };
             if (string.IsNullOrEmpty(Message))
             {
                 Message = "StatusCode: " + value;
@@ -52,7 +52,7 @@ public class HttpError : Error
         }
     }
 
-    internal void SetStatusCode(HttpStatusCode statusCode, ProblemDetails problemDetails)
+    internal void SetStatusCode(HttpStatusCode statusCode, Microsoft.AspNetCore.Mvc.ProblemDetails? problemDetails)
     {
         StatusCode = statusCode;
         Detail = problemDetails;

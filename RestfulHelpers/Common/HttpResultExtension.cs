@@ -58,7 +58,7 @@ public static class HttpResultExtension
     /// <returns>The modified HTTP result.</returns>
     public static T WithStatusCode<T, TProblemDetails>(this T httpResult, HttpStatusCode statusCode, TProblemDetails? problemDetails = null)
         where T : IHttpResult
-        where TProblemDetails : ProblemDetails
+        where TProblemDetails : Microsoft.AspNetCore.Mvc.ProblemDetails
     {
         httpResult.InternalStatusCode = statusCode;
 
@@ -190,4 +190,37 @@ public static class HttpResultExtension
             StatusCode = (int)httpResult.StatusCode,
         };
     }
+
+#if NET7_0_OR_GREATER
+    internal static HttpResult SafeClone(this IHttpResult httpResult)
+    {
+        var clonedHttpResult = new HttpResult();
+        clonedHttpResult.WithHttpResult(httpResult);
+        clonedHttpResult.Errors = [];
+        foreach (var error in httpResult.Errors)
+        {
+            if (httpResult.HttpError is HttpError httpError)
+            {
+                var problemDetails = httpError.Detail is not Microsoft.AspNetCore.Mvc.ProblemDetails mvcProblemDetails ? null : new PatchForProblemDetails()
+                {
+                    Title = mvcProblemDetails.Title,
+                    Type = mvcProblemDetails.Type,
+                    Detail = mvcProblemDetails.Detail,
+                    Status = mvcProblemDetails.Status,
+                    Instance = mvcProblemDetails.Instance
+                };
+                var newError = new HttpError();
+                newError.SetStatusCode(httpError.StatusCode, problemDetails);
+                newError.Message = httpError.Message;
+                newError.Code = httpError.Code;
+                clonedHttpResult.WithError(newError);
+            }
+            else
+            {
+                clonedHttpResult.WithError(error);
+            }
+        }
+        return clonedHttpResult;
+    }
+#endif
 }
