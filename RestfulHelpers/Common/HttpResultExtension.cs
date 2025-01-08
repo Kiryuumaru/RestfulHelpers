@@ -34,16 +34,7 @@ public static class HttpResultExtension
     public static T WithStatusCode<T>(this T httpResult, HttpStatusCode statusCode)
         where T : IHttpResult
     {
-        httpResult.InternalStatusCode = statusCode;
-
-        if ((int)statusCode < 200 || (int)statusCode > 299)
-        {
-            httpResult.WithError(new HttpError()
-            {
-                StatusCode = statusCode
-            });
-        }
-
+        httpResult.Append(new HttpResultAppend() { StatusCode = statusCode, ShouldAppendStatusCodeOrError = true });
         return httpResult;
     }
 
@@ -60,79 +51,17 @@ public static class HttpResultExtension
         where T : IHttpResult
         where TProblemDetails : Microsoft.AspNetCore.Mvc.ProblemDetails
     {
-        httpResult.InternalStatusCode = statusCode;
-
         if (problemDetails != null)
         {
             HttpError httpError = new();
             httpError.SetStatusCode(statusCode, problemDetails);
-            httpResult.WithError(httpError);
+            httpResult.Append(new HttpResultAppend() { Errors = [httpError], StatusCode = statusCode, ShouldAppendErrors = true, ShouldAppendStatusCode = true });
         }
-        else if ((int)statusCode < 200 || (int)statusCode > 299)
+        else
         {
-            httpResult.WithError(new HttpError()
-            {
-                StatusCode = statusCode
-            });
+            httpResult.Append(new HttpResultAppend() { StatusCode = statusCode, ShouldAppendStatusCodeOrError = true });
         }
 
-        return httpResult;
-    }
-
-    /// <summary>
-    /// Sets the HTTP result and status code for the given <paramref name="httpResult"/>.
-    /// </summary>
-    /// <typeparam name="T">Type of the HTTP result.</typeparam>
-    /// <param name="httpResult">The HTTP result to modify.</param>
-    /// <param name="appendResultValues">Append values if the results has the same value type.</param>
-    /// <param name="httpResults">The HTTP results to set.</param>
-    /// <returns>The modified HTTP result.</returns>
-    public static T WithHttpResult<T>(this T httpResult, bool appendResultValues, params IHttpResult[] httpResults)
-        where T : IHttpResult
-    {
-        if (httpResults != null)
-        {
-            foreach (var r in httpResults)
-            {
-                if (r != null)
-                {
-                    httpResult.WithResult(appendResultValues, r);
-                    httpResult.InternalStatusCode = r.StatusCode;
-                    foreach (var header in r.InternalResponseHeaders)
-                    {
-                        httpResult.WithHttpResponseHeader(header.Key, header.Value);
-                    }
-                }
-            }
-        }
-        return httpResult;
-    }
-
-    /// <summary>
-    /// Sets the HTTP result and status code for the given <paramref name="httpResult"/>.
-    /// </summary>
-    /// <typeparam name="T">Type of the HTTP result.</typeparam>
-    /// <param name="httpResult">The HTTP result to modify.</param>
-    /// <param name="httpResults">The HTTP results to set.</param>
-    /// <returns>The modified HTTP result.</returns>
-    public static T WithHttpResult<T>(this T httpResult, params IHttpResult[] httpResults)
-        where T : IHttpResult
-    {
-        if (httpResults != null)
-        {
-            foreach (var r in httpResults)
-            {
-                if (r != null)
-                {
-                    httpResult.WithResult(r);
-                    httpResult.InternalStatusCode = r.StatusCode;
-                    foreach (var header in r.InternalResponseHeaders)
-                    {
-                        httpResult.WithHttpResponseHeader(header.Key, header.Value);
-                    }
-                }
-            }
-        }
         return httpResult;
     }
 
@@ -147,7 +76,7 @@ public static class HttpResultExtension
     public static T WithHttpResponseHeader<T>(this T httpResult, string headerName, params string[] headerValues)
         where T : IHttpResult
     {
-        httpResult.InternalResponseHeaders[headerName] = headerValues;
+        httpResult.Append(new HttpResultAppend() { ResponseHeaders = new Dictionary<string, string[]>() { [headerName] = headerValues }, ShouldReplaceHeaders = true });
         return httpResult;
     }
 
@@ -162,16 +91,7 @@ public static class HttpResultExtension
     public static T WithHttpResponseHeaderAppend<T>(this T httpResult, string headerName, params string[] headerValues)
         where T : IHttpResult
     {
-        if (httpResult.InternalResponseHeaders.TryGetValue(headerName, out string[]? value))
-        {
-            var existingValues = value.ToList();
-            existingValues.AddRange(headerValues);
-            httpResult.InternalResponseHeaders[headerName] = [.. existingValues];
-        }
-        else
-        {
-            httpResult.InternalResponseHeaders[headerName] = headerValues;
-        }
+        httpResult.Append(new HttpResultAppend() { ResponseHeaders = new Dictionary<string, string[]>() { [headerName] = headerValues }, ShouldAppendHeaders = true });
         return httpResult;
     }
 
@@ -190,37 +110,4 @@ public static class HttpResultExtension
             StatusCode = (int)httpResult.StatusCode,
         };
     }
-
-#if NET7_0_OR_GREATER
-    internal static HttpResult SafeClone(this IHttpResult httpResult)
-    {
-        var clonedHttpResult = new HttpResult();
-        clonedHttpResult.WithHttpResult(httpResult);
-        clonedHttpResult.Errors = [];
-        foreach (var error in httpResult.Errors)
-        {
-            if (httpResult.HttpError is HttpError httpError)
-            {
-                var problemDetails = httpError.Detail is not Microsoft.AspNetCore.Mvc.ProblemDetails mvcProblemDetails ? null : new PatchForProblemDetails()
-                {
-                    Title = mvcProblemDetails.Title,
-                    Type = mvcProblemDetails.Type,
-                    Detail = mvcProblemDetails.Detail,
-                    Status = mvcProblemDetails.Status,
-                    Instance = mvcProblemDetails.Instance
-                };
-                var newError = new HttpError();
-                newError.SetStatusCode(httpError.StatusCode, problemDetails);
-                newError.Message = httpError.Message;
-                newError.Code = httpError.Code;
-                clonedHttpResult.WithError(newError);
-            }
-            else
-            {
-                clonedHttpResult.WithError(error);
-            }
-        }
-        return clonedHttpResult;
-    }
-#endif
 }

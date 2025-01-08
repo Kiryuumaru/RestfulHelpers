@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using RestfulHelpers;
 using RestfulHelpers.Common;
 using RestfulHelpers.Common.Internals;
@@ -23,77 +25,126 @@ using static RestfulHelpers.Common.Internals.Message;
 
 namespace RestfulHelpers.Common;
 
+internal static class HttpResultCommon
+{
+    public static void Append(IHttpResult httpResult, ResultAppend resultAppend)
+    {
+        if (resultAppend is HttpResultAppend httpResultAppend)
+        {
+            if (httpResultAppend.ShouldAppendStatusCode || httpResultAppend.ShouldAppendStatusCodeOrError)
+            {
+                httpResult.InternalStatusCode = httpResultAppend.StatusCode;
+            }
+            if (httpResultAppend.ShouldAppendStatusCodeOrError)
+            {
+                if ((int)httpResultAppend.StatusCode < 200 || (int)httpResultAppend.StatusCode > 299)
+                {
+                    var httpError = new HttpError();
+                    httpError.SetStatusCode(httpResultAppend.StatusCode, null);
+                    httpResult.Append(new ResultAppend() { Errors = [httpError], ShouldAppendErrors = true });
+                    resultAppend.ShouldAppendErrors = false;
+                }
+            }
+            if (httpResultAppend.ShouldAppendHeaders)
+            {
+                if (httpResultAppend.ResponseHeaders != null)
+                {
+                    foreach (var header in httpResultAppend.ResponseHeaders)
+                    {
+                        var headerName = header.Key;
+                        var headerValues = header.Value;
+                        if (httpResult.InternalResponseHeaders.TryGetValue(headerName, out string[]? value))
+                        {
+                            var existingValues = value.ToList();
+                            existingValues.AddRange(headerValues);
+                            httpResult.InternalResponseHeaders[headerName] = [.. existingValues];
+                        }
+                        else
+                        {
+                            httpResult.InternalResponseHeaders[headerName] = headerValues;
+                        }
+                    }
+                }
+            }
+            if (httpResultAppend.ShouldReplaceHeaders)
+            {
+                if (httpResultAppend.ResponseHeaders != null)
+                {
+                    httpResult.InternalResponseHeaders = httpResultAppend.ResponseHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                }
+            }
+        }
+
+        if (resultAppend.ShouldAppendErrors)
+        {
+            if (resultAppend.Errors != null)
+            {
+                foreach (var error in resultAppend.Errors)
+                {
+                    if (error is HttpError httpError)
+                    {
+                        httpResult.Append(new HttpResultAppend()
+                        {
+                            StatusCode = httpError.StatusCode,
+                            ShouldAppendStatusCode = true
+                        });
+                    }
+                    else
+                    {
+                        httpResult.Append(new HttpResultAppend()
+                        {
+                            StatusCode = HttpStatusCode.InternalServerError,
+                            ShouldAppendStatusCode = true
+                        });
+                    }
+                }
+            }
+        }
+        if (resultAppend.ShouldAppendResultValue || resultAppend.ShouldAppendResultErrors || resultAppend.ShouldReplaceResultErrors)
+        {
+            if (resultAppend.Results != null)
+            {
+                foreach (var result in resultAppend.Results)
+                {
+                    if (result is IHttpResult httpResultToAppend)
+                    {
+                        httpResult.Append(new HttpResultAppend() { StatusCode = httpResultToAppend.StatusCode, ShouldAppendStatusCodeOrError = true });
+                        httpResult.Append(new HttpResultAppend() { ResponseHeaders = httpResultToAppend.ResponseHeaders, ShouldReplaceHeaders = true });
+                    }
+                }
+            }
+        }
+    }
+
+    public static void HandleClone(IHttpResult httpResult, object clone)
+    {
+        if (clone is IHttpResult httpResultClone)
+        {
+            httpResultClone.InternalStatusCode = httpResult.InternalStatusCode;
+            httpResultClone.InternalResponseHeaders = httpResult.InternalResponseHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        }
+    }
+
+    public static Task ExecuteResultAsync<THttpResult>(THttpResult httpResult, ActionContext context)
+        where THttpResult : IHttpResult
+    {
+        var actionResult = new ObjectResult(httpResult)
+        {
+            DeclaredType = typeof(THttpResult),
+            StatusCode = (int)httpResult.StatusCode
+        };
+        return actionResult.ExecuteResultAsync(context);
+    }
+}
+
 /// <summary>
 /// The base result for all HTTP requests.
 /// </summary>
 public class HttpResult : Result, IHttpResult
 {
-    HttpStatusCode IHttpResult.InternalStatusCode { get; set; }
+    HttpStatusCode IHttpResult.InternalStatusCode { get; set; } = HttpStatusCode.OK;
 
     Dictionary<string, string[]> IHttpResult.InternalResponseHeaders { get; set; } = [];
-
-    /// <inheritdoc/>
-    [JsonIgnore]
-    public override Error? Error => base.Error;
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(false, nameof(Error))]
-    public override bool IsSuccess => base.IsSuccess;
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(true, nameof(Error))]
-    [JsonIgnore]
-    public override bool IsError => base.IsError;
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Success<TAppend>(TAppend resultAppend)
-    {
-        if (resultAppend is IHttpResult httpResult)
-        {
-            this.WithHttpResult(httpResult);
-        }
-
-        return base.Success(resultAppend);
-    }
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(false, nameof(Error))]
-    public override bool Success<TAppend, TAppendValue>(TAppend resultAppend, out TAppendValue? value)
-        where TAppendValue : default
-    {
-        if (resultAppend is IHttpResult httpResult)
-        {
-            this.WithHttpResult(httpResult);
-        }
-
-        return base.Success(resultAppend, out value);
-    }
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(false, nameof(Error))]
-    public override bool SuccessAndHasValue<TAppend>(TAppend resultAppend)
-    {
-        if (resultAppend is IHttpResult httpResult)
-        {
-            this.WithHttpResult(httpResult);
-        }
-
-        return base.SuccessAndHasValue(resultAppend);
-    }
-
-    /// <inheritdoc/>
-    [MemberNotNullWhen(false, nameof(Error))]
-    public override bool SuccessAndHasValue<TAppend, TAppendValue>(TAppend resultAppend, [NotNullWhen(true)] out TAppendValue? value)
-        where TAppendValue : default
-    {
-        if (resultAppend is IHttpResult httpResult)
-        {
-            this.WithHttpResult(httpResult);
-        }
-
-        return base.SuccessAndHasValue(resultAppend, out value);
-    }
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -102,40 +153,22 @@ public class HttpResult : Result, IHttpResult
     /// <inheritdoc/>
     public HttpStatusCode StatusCode
     {
-        get
-        {
-            if ((this as IHttpResult).InternalStatusCode == 0)
-            {
-                if (HttpError is HttpError httpError)
-                {
-                    return httpError.StatusCode;
-                }
-                else if (IsError)
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-
-                return HttpStatusCode.OK;
-            }
-
-            return (this as IHttpResult).InternalStatusCode;
-        }
-        set => this.WithStatusCode(value);
+        get => (this as IHttpResult).InternalStatusCode;
+        set => Append(new HttpResultAppend() { StatusCode = value, ShouldAppendStatusCodeOrError = true });
     }
 
     /// <inheritdoc/>
     [JsonIgnore]
-    public IReadOnlyDictionary<string, string[]> ResponseHeaders => (this as IHttpResult).InternalResponseHeaders.AsReadOnly();
+    public IReadOnlyDictionary<string, string[]> ResponseHeaders
+    {
+        get => (this as IHttpResult).InternalResponseHeaders.AsReadOnly();
+        set => Append(new HttpResultAppend() { ResponseHeaders = value, ShouldReplaceHeaders = true });
+    }
 
     /// <inheritdoc/>
     public Task ExecuteResultAsync(ActionContext context)
     {
-        var actionResult = new ObjectResult(this)
-        {
-            DeclaredType = GetType(),
-            StatusCode = (int)StatusCode
-        };
-        return actionResult.ExecuteResultAsync(context);
+        return HttpResultCommon.ExecuteResultAsync(this, context);
     }
 
 #if NET7_0_OR_GREATER
@@ -149,6 +182,28 @@ public class HttpResult : Result, IHttpResult
         return HttpResultResponse.Create(this, jsonSerializerOptions);
     }
 #endif
+
+    /// <inheritdoc/>
+    public override void Append(ResultAppend resultAppend)
+    {
+        HttpResultCommon.Append(this, resultAppend);
+        base.Append(resultAppend);
+    }
+
+    /// <inheritdoc/>
+    public override object Clone()
+    {
+        HttpResult httpResult = new();
+        HandleClone(httpResult);
+        return httpResult;
+    }
+
+    /// <inheritdoc/>
+    protected override void HandleClone(object clone)
+    {
+        base.HandleClone(clone);
+        HttpResultCommon.HandleClone(this, clone);
+    }
 
     /// <summary>
     /// Implicit operator for <see cref="Error"/> conversion.
@@ -256,40 +311,22 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
     /// <inheritdoc/>
     public HttpStatusCode StatusCode
     {
-        get
-        {
-            if ((this as IHttpResult).InternalStatusCode == 0)
-            {
-                if (HttpError is HttpError httpError)
-                {
-                    return httpError.StatusCode;
-                }
-                else if (IsError)
-                {
-                    return HttpStatusCode.InternalServerError;
-                }
-
-                return HttpStatusCode.OK;
-            }
-
-            return (this as IHttpResult).InternalStatusCode;
-        }
-        set => this.WithStatusCode(value);
+        get => (this as IHttpResult).InternalStatusCode;
+        set => Append(new HttpResultAppend() { StatusCode = value, ShouldAppendStatusCodeOrError = true });
     }
 
     /// <inheritdoc/>
     [JsonIgnore]
-    public IReadOnlyDictionary<string, string[]> ResponseHeaders => (this as IHttpResult).InternalResponseHeaders.AsReadOnly();
+    public IReadOnlyDictionary<string, string[]> ResponseHeaders
+    {
+        get => (this as IHttpResult).InternalResponseHeaders.AsReadOnly();
+        set => Append(new HttpResultAppend() { ResponseHeaders = value, ShouldReplaceHeaders = true });
+    }
 
     /// <inheritdoc/>
     public Task ExecuteResultAsync(ActionContext context)
     {
-        var actionResult = new ObjectResult(this)
-        {
-            DeclaredType = GetType(),
-            StatusCode = (int)StatusCode
-        };
-        return actionResult.ExecuteResultAsync(context);
+        return HttpResultCommon.ExecuteResultAsync(this, context);
     }
 
 #if NET7_0_OR_GREATER
@@ -315,6 +352,28 @@ public class HttpResult<TValue> : Result<TValue>, IHttpResult<TValue>
         return HttpResultResponse<TValue>.Create(this, jsonTypeInfo);
     }
 #endif
+
+    /// <inheritdoc/>
+    public override void Append(ResultAppend resultAppend)
+    {
+        HttpResultCommon.Append(this, resultAppend);
+        base.Append(resultAppend);
+    }
+
+    /// <inheritdoc/>
+    public override object Clone()
+    {
+        HttpResult<TValue> httpResult = new();
+        HandleClone(httpResult);
+        return httpResult;
+    }
+
+    /// <inheritdoc/>
+    protected override void HandleClone(object clone)
+    {
+        base.HandleClone(clone);
+        HttpResultCommon.HandleClone(this, clone);
+    }
 
     /// <summary>
     /// Implicit operator for <see cref="Error"/> conversion.

@@ -41,20 +41,22 @@ public class HttpError : Error
 
             return 0;
         }
-        set
-        {
-            Code = value.ToString().ToSnakeCase().ToUpper();
-            Detail = new Microsoft.AspNetCore.Mvc.ProblemDetails() { Status = (int)value };
-            if (string.IsNullOrEmpty(Message))
-            {
-                Message = "StatusCode: " + value;
-            }
-        }
     }
 
     internal void SetStatusCode(HttpStatusCode statusCode, Microsoft.AspNetCore.Mvc.ProblemDetails? problemDetails)
     {
-        StatusCode = statusCode;
+        problemDetails ??= new Microsoft.AspNetCore.Mvc.ProblemDetails();
+        problemDetails.Status = (int)statusCode;
+        Code = statusCode.ToString().ToSnakeCase().ToUpper();
         Detail = problemDetails;
+        Message = "StatusCode: " + statusCode.ToString();
+    }
+
+    /// <inheritdoc/>
+    public override object Clone()
+    {
+        HttpError httpError = new();
+        HandleClone(httpError);
+        return httpError;
     }
 }
