@@ -28,6 +28,37 @@ using static RestfulHelpers.Common.Internals.Message;
 namespace RestfulHelpers.Common;
 
 #if NET7_0_OR_GREATER
+
+internal static class HttpResultResponseCommon
+{
+    public static void PatchProblemDetails(IHttpResult httpResult)
+    {
+        foreach (var error in httpResult.Errors)
+        {
+            if (error is HttpError httpError)
+            {
+                if (httpError.Detail is ProblemDetails mvcProblemDetails)
+                {
+                    var patchProblemDetails = new PatchForProblemDetails()
+                    {
+                        Status = mvcProblemDetails.Status,
+                        Title = mvcProblemDetails.Title,
+                        Type = mvcProblemDetails.Type,
+                        Detail = mvcProblemDetails.Detail,
+                        Instance = mvcProblemDetails.Instance
+                    };
+                    patchProblemDetails.Extensions.Clear();
+                    foreach (var extension in mvcProblemDetails.Extensions)
+                    {
+                        patchProblemDetails.Extensions.Add(extension);
+                    }
+                    httpError.Detail = patchProblemDetails;
+                }
+            }
+        }
+    }
+}
+
 internal class HttpResultResponse : IHttpResultResponse
 {
     public static HttpResultResponse Create(HttpResult httpResult, JsonSerializerOptions? jsonSerializerOptions)
@@ -67,7 +98,11 @@ internal class HttpResultResponse : IHttpResultResponse
             httpContext.Response.Headers.Append(header.Key, header.Value);
         }
 
-        return httpContext.Response.WriteAsJsonAsync(HttpResult.SafeClone(), RestfulHelpersJsonSerializerContext.HttpResult);
+        var httpResultClone = (HttpResult.Clone() as HttpResult)!;
+
+        HttpResultResponseCommon.PatchProblemDetails(httpResultClone);
+
+        return httpContext.Response.WriteAsJsonAsync(httpResultClone, RestfulHelpersJsonSerializerContext.HttpResult);
     }
 
     public Task ExecuteResultAsync(ActionContext context)
@@ -145,7 +180,11 @@ internal class HttpResultResponse<T> : IHttpResultResponse<T>
         {
             using var jsonWriter = new Utf8JsonWriter(httpContext.Response.BodyWriter);
 
-            var jsonNode = JsonSerializer.SerializeToNode(HttpResult.SafeClone(), RestfulHelpersJsonSerializerContext.IHttpResult)!;
+            var httpResultClone = (HttpResult.Clone() as IHttpResult)!;
+
+            HttpResultResponseCommon.PatchProblemDetails(httpResultClone);
+
+            var jsonNode = JsonSerializer.SerializeToNode((HttpResult.Clone() as IHttpResult)!, RestfulHelpersJsonSerializerContext.IHttpResult)!;
 
             string valuePropName = JsonTypeInfo.Options.PropertyNamingPolicy?.ConvertName("Value") ?? "value";
 
