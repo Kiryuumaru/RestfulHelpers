@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using RestfulHelpers.Common;
 using System.Net;
 using System.Text.Json;
@@ -102,9 +103,32 @@ app.MapGet("/httpresulterror_Unauthorized", () =>
     return result.GetResponse();
 });
 
+app.MapGet("/httpresulterror_cascade", () =>
+{
+    HttpResult result = new();
+    if (!result.Success(CheckTest()))
+    {
+        return result.GetResponse();
+    }
+    return result.GetResponse();
+});
+
 app.MapDefaultEndpoints();
 
 app.Run();
+
+HttpResult CheckTest()
+{
+    HttpResult result = new();
+    result.WithStatusCode(HttpStatusCode.Unauthorized, new ProblemDetails()
+    {
+        Title = "Unauthorized",
+        Detail = "Error test detail Unauthorized",
+        Status = (int)HttpStatusCode.Unauthorized,
+        Instance = "/somepath/test"
+    });
+    return result;
+}
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {

@@ -39,10 +39,22 @@ internal static class HttpResultCommon
             {
                 if ((int)httpResultAppend.StatusCode < 200 || (int)httpResultAppend.StatusCode > 299)
                 {
+                    List<Error> errors = [];
+                    if (resultAppend.Errors != null)
+                    {
+                        foreach (var error in resultAppend.Errors)
+                        {
+                            if (error != null)
+                            {
+                                errors.Add(error);
+                            }
+                        }
+                    }
                     var httpError = new HttpError();
                     httpError.SetStatusCode(httpResultAppend.StatusCode, null);
-                    httpResult.Append(new ResultAppend() { Errors = [httpError], ShouldAppendErrors = true });
-                    resultAppend.ShouldAppendErrors = false;
+                    errors.Add(httpError);
+                    resultAppend.Errors = errors.AsReadOnly();
+                    httpResultAppend.ShouldAppendErrors = true;
                 }
             }
             if (httpResultAppend.ShouldAppendHeaders)
