@@ -54,6 +54,7 @@ internal static class HttpResultCommon
                     httpError.SetStatusCode(httpResultAppend.StatusCode, null);
                     errors.Add(httpError);
                     resultAppend.Errors = errors.AsReadOnly();
+                    httpResultAppend.ShouldAppendErrors = true;
                 }
             }
             if (httpResultAppend.ShouldAppendHeaders)
