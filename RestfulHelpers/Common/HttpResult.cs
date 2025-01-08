@@ -120,7 +120,7 @@ internal static class HttpResultCommon
                 {
                     if (result is IHttpResult httpResultToAppend)
                     {
-                        httpResult.Append(new HttpResultAppend() { StatusCode = httpResultToAppend.StatusCode, ShouldAppendStatusCodeOrError = true });
+                        httpResult.Append(new HttpResultAppend() { StatusCode = httpResultToAppend.StatusCode, ShouldAppendStatusCode = true });
                         httpResult.Append(new HttpResultAppend() { ResponseHeaders = httpResultToAppend.ResponseHeaders, ShouldReplaceHeaders = true });
                     }
                 }
