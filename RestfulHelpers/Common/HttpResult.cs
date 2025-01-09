@@ -118,6 +118,18 @@ internal static class HttpResultCommon
             {
                 foreach (var result in resultAppend.Results)
                 {
+                    if (result == null)
+                    {
+                        continue;
+                    }
+                    if (resultAppend.ShouldAppendResultErrors)
+                    {
+                        httpResult.Append(new() { Errors = [.. result.Errors], ShouldAppendErrors = true });
+                    }
+                    if (resultAppend.ShouldReplaceResultErrors)
+                    {
+                        httpResult.Append(new() { Errors = [.. result.Errors], ShouldReplaceErrors = true });
+                    }
                     if (result is IHttpResult httpResultToAppend)
                     {
                         httpResult.Append(new HttpResultAppend() { StatusCode = httpResultToAppend.StatusCode, ShouldAppendStatusCode = true });
@@ -125,6 +137,8 @@ internal static class HttpResultCommon
                     }
                 }
             }
+            resultAppend.ShouldAppendResultErrors = false;
+            resultAppend.ShouldReplaceResultErrors = false;
         }
     }
 
