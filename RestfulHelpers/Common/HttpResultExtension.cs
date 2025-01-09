@@ -85,25 +85,7 @@ public static class HttpResultExtension
         if (!string.IsNullOrEmpty(errorMessage) || !string.IsNullOrEmpty(errorCode) || !string.IsNullOrEmpty(errorTitle) || !string.IsNullOrEmpty(errorDetail) || !string.IsNullOrEmpty(errorInstance) || !string.IsNullOrEmpty(errorType) || errorExtensions != null)
         {
             HttpError httpError = new();
-            var problemDetails = new ProblemDetails()
-            {
-                Status = (int)statusCode,
-                Title = errorTitle,
-                Detail = errorDetail,
-                Instance = errorInstance,
-                Type = errorType
-            };
-            if (errorExtensions != null)
-            {
-                problemDetails.Extensions.Clear();
-                foreach (var extension in errorExtensions)
-                {
-                    problemDetails.Extensions.Add(extension.Key, extension.Value);
-                }
-            }
-            httpError.Code = errorCode;
-            httpError.Message = errorMessage;
-            httpError.Detail = problemDetails;
+            httpError.SetStatusCode(statusCode, errorMessage, errorCode, errorTitle, errorDetail, errorInstance, errorType, errorExtensions);
             httpResult.Append(new HttpResultAppend() { Errors = [httpError], StatusCode = statusCode, ShouldAppendErrors = true, ShouldAppendStatusCode = true });
         }
         else

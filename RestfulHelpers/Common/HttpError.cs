@@ -52,6 +52,29 @@ public class HttpError : Error
         Message = "StatusCode: " + statusCode.ToString();
     }
 
+    internal void SetStatusCode(HttpStatusCode statusCode, string? errorMessage = null, string? errorCode = null, string? errorTitle = null, string? errorDetail = null, string? errorInstance = null, string? errorType = null, IDictionary<string, object?>? errorExtensions = null)
+    {
+        var problemDetails = new ProblemDetails()
+        {
+            Title = errorTitle,
+            Detail = errorDetail,
+            Instance = errorInstance,
+            Type = errorType,
+            Status = (int)statusCode
+        };
+        if (errorExtensions != null)
+        {
+            problemDetails.Extensions.Clear();
+            foreach (var extension in errorExtensions)
+            {
+                problemDetails.Extensions.Add(extension.Key, extension.Value);
+            }
+        }
+        Code = string.IsNullOrEmpty(errorCode) ? statusCode.ToString().ToSnakeCase().ToUpper() : errorCode;
+        Message = string.IsNullOrEmpty(errorMessage) ? "StatusCode: " + statusCode.ToString() : errorMessage;
+        Detail = problemDetails;
+    }
+
     /// <inheritdoc/>
     public override object Clone()
     {

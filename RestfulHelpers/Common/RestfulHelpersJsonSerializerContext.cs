@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace RestfulHelpers.Common;
 
 #if NET7_0_OR_GREATER
-internal class PatchForProblemDetails : global::Microsoft.AspNetCore.Mvc.ProblemDetails { }
+internal class PatchForProblemDetails : ProblemDetails { }
 
 [JsonSerializable(typeof(Result))]
 [JsonSerializable(typeof(Error))]
