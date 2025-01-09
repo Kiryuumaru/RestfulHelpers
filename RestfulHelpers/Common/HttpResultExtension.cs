@@ -49,12 +49,61 @@ public static class HttpResultExtension
     /// <returns>The modified HTTP result.</returns>
     public static T WithStatusCode<T, TProblemDetails>(this T httpResult, HttpStatusCode statusCode, TProblemDetails? problemDetails = null)
         where T : IHttpResult
-        where TProblemDetails : Microsoft.AspNetCore.Mvc.ProblemDetails
+        where TProblemDetails : ProblemDetails
     {
         if (problemDetails != null)
         {
             HttpError httpError = new();
             httpError.SetStatusCode(statusCode, problemDetails);
+            httpResult.Append(new HttpResultAppend() { Errors = [httpError], StatusCode = statusCode, ShouldAppendErrors = true, ShouldAppendStatusCode = true });
+        }
+        else
+        {
+            httpResult.Append(new HttpResultAppend() { StatusCode = statusCode, ShouldAppendStatusCodeOrError = true });
+        }
+
+        return httpResult;
+    }
+
+    /// <summary>
+    /// Sets the HTTP status code for the given <paramref name="httpResult"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <param name="httpResult">The HTTP result to modify.</param>
+    /// <param name="statusCode">The HTTP status code to set.</param>
+    /// <param name="errorMessage">Optional error message to include in the error.</param>
+    /// <param name="errorCode">Optional error code to include in the error.</param>
+    /// <param name="errorTitle">Optional error title to include in the error.</param>
+    /// <param name="errorDetail">Optional error detail to include in the error.</param>
+    /// <param name="errorInstance">Optional error instance to include in the error.</param>
+    /// <param name="errorType">Optional error type to include in the error.</param>
+    /// <param name="errorExtensions">Optional error extensions to include in the error.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static T WithStatusCode<T>(this T httpResult, HttpStatusCode statusCode, string? errorMessage = null, string? errorCode = null, string? errorTitle = null, string? errorDetail = null, string? errorInstance = null, string? errorType = null, IDictionary<string, object?>? errorExtensions = null)
+        where T : IHttpResult
+    {
+        if (!string.IsNullOrEmpty(errorMessage) || !string.IsNullOrEmpty(errorCode) || !string.IsNullOrEmpty(errorTitle) || !string.IsNullOrEmpty(errorDetail) || !string.IsNullOrEmpty(errorInstance) || !string.IsNullOrEmpty(errorType) || errorExtensions != null)
+        {
+            HttpError httpError = new();
+            var problemDetails = new ProblemDetails()
+            {
+                Status = (int)statusCode,
+                Title = errorTitle,
+                Detail = errorDetail,
+                Instance = errorInstance,
+                Type = errorType
+            };
+            if (errorExtensions != null)
+            {
+                problemDetails.Extensions.Clear();
+                foreach (var extension in errorExtensions)
+                {
+                    problemDetails.Extensions.Add(extension.Key, extension.Value);
+                }
+            }
+            httpError.Code = errorCode;
+            httpError.Message = errorMessage;
+            httpError.Detail = problemDetails;
             httpResult.Append(new HttpResultAppend() { Errors = [httpError], StatusCode = statusCode, ShouldAppendErrors = true, ShouldAppendStatusCode = true });
         }
         else
