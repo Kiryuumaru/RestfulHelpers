@@ -113,6 +113,13 @@ app.MapGet("/httpresulterror_cascade", () =>
     return result.GetResponse();
 });
 
+app.MapGet("/httpresulterror_custom_detail_error", () =>
+{
+    HttpResult result = new();
+    result.WithStatusCode(HttpStatusCode.NotFound, errorMessage: "This is message", errorCode: "THIS_IS_CODE", errorTitle: "This is title", errorType: "ThisIsType", errorDetail: "This is detail", errorInstance: "/this/is/instance");
+    return result.GetResponse();
+});
+
 app.MapDefaultEndpoints();
 
 app.Run();
