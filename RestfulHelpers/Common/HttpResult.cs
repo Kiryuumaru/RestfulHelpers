@@ -68,7 +68,13 @@ internal static class HttpResultCommon
                         if (httpResult.InternalResponseHeaders.TryGetValue(headerName, out string[]? value))
                         {
                             var existingValues = value.ToList();
-                            existingValues.AddRange(headerValues);
+                            foreach (var headerValue in headerValues)
+                            {
+                                if (!existingValues.Contains(headerValue))
+                                {
+                                    existingValues.Add(headerValue);
+                                }
+                            }
                             httpResult.InternalResponseHeaders[headerName] = [.. existingValues];
                         }
                         else
