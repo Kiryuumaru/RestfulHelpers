@@ -107,22 +107,50 @@ public static class HttpResultExtension
     public static T WithHttpResponseHeader<T>(this T httpResult, string headerName, params string[] headerValues)
         where T : IHttpResult
     {
-        httpResult.Append(new HttpResultAppend() { ResponseHeaders = new Dictionary<string, string[]>() { [headerName] = headerValues }, ShouldReplaceHeaders = true });
+        httpResult.Append(new HttpResultAppend() { ResponseHeaders = new Dictionary<string, string[]>() { [headerName] = headerValues }, ShouldAppendHeaders = true, ShouldAppendHeaderValues = true });
         return httpResult;
     }
 
     /// <summary>
-    /// Appends a http response header to the given <paramref name="httpResult"/>.
+    /// Replace a http response header to the given <paramref name="httpResult"/>.
     /// </summary>
     /// <typeparam name="T">Type of the HTTP result.</typeparam>
     /// <param name="httpResult">The HTTP result to modify.</param>
     /// <param name="headerName">The name of the header to add.</param>
     /// <param name="headerValues">The values of the header to add.</param>
     /// <returns>The modified HTTP result.</returns>
-    public static T WithHttpResponseHeaderAppend<T>(this T httpResult, string headerName, params string[] headerValues)
+    public static T WithHttpResponseHeaderReplace<T>(this T httpResult, string headerName, params string[] headerValues)
         where T : IHttpResult
     {
-        httpResult.Append(new HttpResultAppend() { ResponseHeaders = new Dictionary<string, string[]>() { [headerName] = headerValues }, ShouldAppendHeaders = true });
+        httpResult.Append(new HttpResultAppend() { ResponseHeaders = new Dictionary<string, string[]>() { [headerName] = headerValues }, ShouldAppendHeaders = true, ShouldReplaceHeaderValues = true });
+        return httpResult;
+    }
+
+    /// <summary>
+    /// Adds or replaces HTTP response headers for the given <paramref name="httpResult"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <param name="httpResult">The HTTP result to modify.</param>
+    /// <param name="headers">The headers to add or replace.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static T WithHttpResponseHeader<T>(this T httpResult, IDictionary<string, IEnumerable<string>> headers)
+        where T : IHttpResult
+    {
+        httpResult.Append(new HttpResultAppend() { ResponseHeaders = headers.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray()), ShouldAppendHeaders = true, ShouldReplaceHeaderValues = true });
+        return httpResult;
+    }
+
+    /// <summary>
+    /// Replaces HTTP response headers for the given <paramref name="httpResult"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the HTTP result.</typeparam>
+    /// <param name="httpResult">The HTTP result to modify.</param>
+    /// <param name="headers">The headers to append.</param>
+    /// <returns>The modified HTTP result.</returns>
+    public static T WithHttpResponseHeaderReplace<T>(this T httpResult, IDictionary<string, IEnumerable<string>> headers)
+        where T : IHttpResult
+    {
+        httpResult.Append(new HttpResultAppend() { ResponseHeaders = headers.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray()), ShouldReplaceHeaders = true });
         return httpResult;
     }
 

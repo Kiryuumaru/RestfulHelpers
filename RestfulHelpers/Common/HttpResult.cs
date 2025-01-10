@@ -65,19 +65,26 @@ internal static class HttpResultCommon
                     {
                         var headerName = header.Key;
                         var headerValues = header.Value;
-                        if (httpResult.InternalResponseHeaders.TryGetValue(headerName, out string[]? value))
+                        if (httpResultAppend.ShouldAppendHeaderValues)
                         {
-                            var existingValues = value.ToList();
-                            foreach (var headerValue in headerValues)
+                            if (httpResult.InternalResponseHeaders.TryGetValue(headerName, out string[]? value))
                             {
-                                if (!existingValues.Contains(headerValue))
+                                var existingValues = value.ToList();
+                                foreach (var headerValue in headerValues)
                                 {
-                                    existingValues.Add(headerValue);
+                                    if (!existingValues.Contains(headerValue))
+                                    {
+                                        existingValues.Add(headerValue);
+                                    }
                                 }
+                                httpResult.InternalResponseHeaders[headerName] = [.. existingValues];
                             }
-                            httpResult.InternalResponseHeaders[headerName] = [.. existingValues];
+                            else
+                            {
+                                httpResult.InternalResponseHeaders[headerName] = headerValues;
+                            }
                         }
-                        else
+                        if (httpResultAppend.ShouldReplaceHeaderValues)
                         {
                             httpResult.InternalResponseHeaders[headerName] = headerValues;
                         }

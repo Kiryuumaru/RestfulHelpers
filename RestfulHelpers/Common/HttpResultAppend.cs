@@ -19,4 +19,8 @@ internal class HttpResultAppend : ResultAppend
     public bool ShouldAppendHeaders { get; set; }
 
     public bool ShouldReplaceHeaders { get; set; }
+
+    public bool ShouldAppendHeaderValues { get; set; }
+
+    public bool ShouldReplaceHeaderValues { get; set; }
 }
