@@ -64,11 +64,13 @@ public class HttpError : Error
         };
         if (errorExtensions != null)
         {
+#if NET6_0_OR_GREATER
             problemDetails.Extensions.Clear();
             foreach (var extension in errorExtensions)
             {
                 problemDetails.Extensions.Add(extension.Key, extension.Value);
             }
+#endif
         }
         Code = string.IsNullOrEmpty(errorCode) ? statusCode.ToString().ToSnakeCase().ToUpper() : errorCode;
         Message = string.IsNullOrEmpty(errorMessage) ? "StatusCode: " + statusCode.ToString() : errorMessage;
