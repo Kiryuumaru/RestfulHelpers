@@ -34,7 +34,7 @@
 		<None Include="..\README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0'">
+	<PropertyGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
 		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 		<IsTrimmable>true</IsTrimmable>
 	</PropertyGroup>
@@ -47,7 +47,6 @@
 
 	<ItemGroup>
 
-	  <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.7" />
 		<PackageReference Include="TransactionHelpers" Version="2.6.35" />
 	</ItemGroup>
 
