@@ -46,8 +46,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+  	<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.8" />
 
-		<PackageReference Include="TransactionHelpers" Version="2.6.35" />
+		<PackageReference Include="TransactionHelpers" Version="2.6.39" />
 	</ItemGroup>
 
 </Project>
