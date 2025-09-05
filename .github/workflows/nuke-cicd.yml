@@ -70,6 +70,11 @@ jobs:
         fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_FETCH_TAGS }}
         submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_CHECKOUT_SUBMODULES }}
         persist-credentials: true
+    - name: Download restful_helpers pre_test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: pre_test___restful_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -81,11 +86,18 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke RestfulHelpersBuild
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSBUILD_RUN_SCRIPT }} Run --args "RestfulHelpersBuild"
-    - name: Upload Artifacts
+    - name: Upload restful_helpers build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build___restful_helpers___RESTFULHELPERSBUILD
-        path: ./.nuke/temp/artifacts-upload/*
+        path: ./.nuke/temp/artifacts-upload/restful_helpers/*
+        if-no-files-found: error
+        retention-days: 1
+    - name: Upload common build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build___$common___RESTFULHELPERSBUILD
+        path: ./.nuke/temp/artifacts-upload/$common/*
         if-no-files-found: error
         retention-days: 1
     needs:
@@ -103,10 +115,16 @@ jobs:
         fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_FETCH_TAGS }}
         submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_CHECKOUT_SUBMODULES }}
         persist-credentials: true
-    - name: Download Artifacts
+    - name: Download restful_helpers pre_test artifacts
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
+        pattern: pre_test___restful_helpers___*
+    - name: Download restful_helpers build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: build___restful_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -118,6 +136,20 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke RestfulHelpersTest
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSTEST_RUN_SCRIPT }} Run --args "RestfulHelpersTest"
+    - name: Upload restful_helpers post_test artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: post_test___restful_helpers___RESTFULHELPERSTEST
+        path: ./.nuke/temp/artifacts-upload/restful_helpers/*
+        if-no-files-found: error
+        retention-days: 1
+    - name: Upload common post_test artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: post_test___$common___RESTFULHELPERSTEST
+        path: ./.nuke/temp/artifacts-upload/$common/*
+        if-no-files-found: error
+        retention-days: 1
     needs:
     - PRE_SETUP
     - RESTFULHELPERSBUILD
@@ -134,11 +166,21 @@ jobs:
         fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_FETCH_TAGS }}
         submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_CHECKOUT_SUBMODULES }}
         persist-credentials: true
-    - name: Download artifacts
+    - name: Download restful_helpers pre_test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: pre_test___restful_helpers___*
+    - name: Download restful_helpers build artifacts
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
         pattern: build___restful_helpers___*
+    - name: Download restful_helpers post_test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: post_test___restful_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -150,11 +192,11 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke RestfulHelpersPublish
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_RESTFULHELPERSPUBLISH_RUN_SCRIPT }} Run --args "RestfulHelpersPublish"
-    - name: Upload Artifacts
+    - name: Upload common publish artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: publish___restful_helpers___RESTFULHELPERSPUBLISH
-        path: ./.nuke/temp/artifacts-upload/*
+        name: publish___$common___RESTFULHELPERSPUBLISH
+        path: ./.nuke/temp/artifacts-upload/$common/*
         if-no-files-found: error
         retention-days: 1
     needs:
@@ -175,11 +217,11 @@ jobs:
         fetch-tags: true
         submodules: recursive
         persist-credentials: true
-    - name: Download Artifacts
+    - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
-        pattern: publish___*
+        pattern: '*___*'
     - name: Run Nuke PipelinePostSetup
       run: chmod +x ./build.sh && ./build.sh PipelinePostSetup
     needs:
