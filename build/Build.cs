@@ -74,7 +74,7 @@ public class Build : BaseNukeBuildHelpers
         {
             var projectPath = RootDirectory / "RestfulHelpers" / "RestfulHelpers.csproj";
             var app = context.Apps.Values.First();
-            string version = app.AppVersion.ToString()!;
+            string version = app.AppVersion.Version.ToString()!;
             string? releaseNotes = null;
             if (app.BumpVersion != null)
             {
